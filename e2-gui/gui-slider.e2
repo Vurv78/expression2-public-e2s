@@ -4,7 +4,7 @@ if(first())
 {
     runOnKeys(players(),1,array("e"))
     EGPSLIDERS=table()
-    function table wirelink:createEGPSlider(EGPIndexes:vector2,[Color]:vector, [Pos Size]:vector2,Radius)
+    function number wirelink:createEGPSlider(EGPIndexes:vector2,[Color]:vector, [Pos Size]:vector2,Radius)
     {
         local EGP_ENTITY = This:entity()
         local EGP_ENTITY_ID = EGP_ENTITY:id()
@@ -25,7 +25,17 @@ if(first())
         This:egpCircle(EGPIndexes[2],vec2(Pos[1]-Size[1]/2,Pos[2]),vec2(Radius))
         This:egpColor(EGPIndexes[1],Color)
         EGPSREGISTERED[EGP_ENTITY_ID,entity]=EGP_ENTITY
-        return Tab
+        return Tab["Index",number]
+    }
+    function number wirelink:setEGPSliderValue(Index:number,SetVal:number)
+    {
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPSLIDERS:exists(EID)){return 0}
+        local LocTab=EGPSLIDERS[EID,table][Index,table]
+        SetVal=clamp(SetVal,0,1)
+        LocTab["Value",number] = SetVal
+        This:egpPos(LocTab["EGPIndexes",vector2][2],vec2(SetVal*(LocTab["Max",number]-LocTab["Min",number])+LocTab["Min",number],This:egpPos(LocTab["EGPIndexes",vector2][1])[2]))
+        return 1
     }
     function table wirelink:getEGPSliderTable(Ind:number)
     {

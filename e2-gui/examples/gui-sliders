@@ -1,0 +1,22 @@
+@name Slider Test
+@inputs EGP:wirelink
+@persist RInd GInd BInd
+
+#include "libraries.slider"
+
+if(first())
+{
+    EGP:egpClear()
+    RInd = EGP:createEGPSlider(vec2(1,2),vec(255,0,0), vec2(256,256),vec2(256,12),15)["Index",number]
+    GInd = EGP:createEGPSlider(vec2(3,4),vec(0,255,0), vec2(256,256+30),vec2(256,12),15)["Index",number]
+    BInd = EGP:createEGPSlider(vec2(5,6),vec(0,0,255), vec2(256,256+60),vec2(256,12),15)["Index",number]
+    EGP:egpBox(7,vec2(256,150),vec2(100))
+}
+
+if(clkEGPSlider())
+{
+    local R = EGP:getEGPSliderValue(RInd)
+    local G = EGP:getEGPSliderValue(GInd)
+    local B = EGP:getEGPSliderValue(BInd)
+    EGP:egpColor(7,vec(R*255,G*255,B*255))
+}

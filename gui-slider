@@ -1,0 +1,56 @@
+@name libraries.slider
+@persist [EGPSLIDERS EGPSREGISTERED]:table
+if(first())
+{
+    runOnKeys(players(),1,array("e"))
+    EGPSLIDERS=table()
+    function table wirelink:createEGPSlider(EGPIndexes:vector2,[Color]:vector, [Pos Size]:vector2,Radius)
+    {
+        local EGP_ENTITY = This:entity()
+        local EGP_ENTITY_ID = EGP_ENTITY:id()
+        if(!EGPSLIDERS:exists(EGP_ENTITY_ID)){EGPSLIDERS[EGP_ENTITY_ID,table]=table()}
+        local EGP_SPECIFIC_TABLE=EGPSLIDERS[EGP_ENTITY_ID,table]
+        #Makes a table per EGP 
+        local Tab = table()
+        Tab["EGPIndexes",vector2]=EGPIndexes
+        Tab["Color",vector]=Color
+        Tab["Index",number]=EGP_SPECIFIC_TABLE:count()+1
+        EGP_SPECIFIC_TABLE:pushTable(Tab)
+        #EgpIndexes, 1 = line, 2 = circle
+        This:egpRoundedBox(EGPIndexes[1],Pos,Size)
+        This:egpCircle(EGPIndexes[2],vec2(Pos[1]-Size[1]/2,Pos[2]),vec2(Radius))
+        This:egpColor(EGPIndexes[1],Color)
+        EGPSREGISTERED[EGP_ENTITY_ID,entity]=EGP_ENTITY
+        return Tab
+    }
+}
+if(keyClk())
+{
+    local EGPCOUNT=EGPSREGISTERED:count()
+    local Ply = keyClk()
+    
+    local AimedEGP = Ply:aimEntity()
+    local AimedEGP_ID=AimedEGP:id()
+    if(keyClk(Ply)==1&&AimedEGP:type()=="gmod_wire_egp" && EGPSREGISTERED:exists(AimedEGP_ID))
+    {
+        local SliderCounts = table() #Makes table containing # of sliders in an EGP.
+        local EGP_LOCAL_TABLE = EGPSLIDERS[AimedEGP_ID,table] #Table local of all sliders in egp.
+        if(!SliderCounts:exists(AimedEGP_ID)){SliderCounts[AimedEGP_ID,number]=EGP_LOCAL_TABLE:count()}
+        #If no slidercount for an egp exists, make it with egpsliders table. more efficient than checking each time.
+        local SliderCount = SliderCounts[AimedEGP_ID,number]
+        local AimedEGPWL = AimedEGP:wirelink()
+        local CursorPos=AimedEGPWL:egpCursor(Ply)
+        for(I=1,SliderCount) #loops through all sliders in an egp.
+        {
+            local EGP_LOCAL_X2 = EGP_LOCAL_TABLE[I,table] #Number slider
+            local SliderLine = EGP_LOCAL_X2["EGPIndexes",vector2][1] #Index of slider line.
+            if(AimedEGPWL:egpObjectContainsPoint(SliderLine,CursorPos))
+            {
+                local Pos = vec2(CursorPos[1],AimedEGPWL:egpPos(SliderLine)[2])
+                AimedEGPWL:egpPos(EGP_LOCAL_X2["EGPIndexes",vector2][2],Pos) #Sets circle pos on slider to cursor pos + line y
+            }
+        }
+    }
+}
+
+

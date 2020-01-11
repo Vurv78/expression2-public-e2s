@@ -1,5 +1,5 @@
 @name libraries.slider
-@persist [EGPSLIDERS EGPSREGISTERED]:table
+@persist [EGPSLIDERS EGPSREGISTERED LAST_EGPSLIDER_MOVED]:table LIB_EGPSLIDER_CLK
 if(first())
 {
     runOnKeys(players(),1,array("e"))
@@ -14,7 +14,7 @@ if(first())
         local Tab = table()
         Tab["EGPIndexes",vector2]=EGPIndexes
         Tab["Color",vector]=Color
-        Tab["Index",number]=EGP_SPECIFIC_TABLE:count()+1
+        Tab["Value",number]=0
         EGP_SPECIFIC_TABLE:pushTable(Tab)
         #EgpIndexes, 1 = line, 2 = circle
         This:egpRoundedBox(EGPIndexes[1],Pos,Size)
@@ -22,6 +22,23 @@ if(first())
         This:egpColor(EGPIndexes[1],Color)
         EGPSREGISTERED[EGP_ENTITY_ID,entity]=EGP_ENTITY
         return Tab
+    }
+    function table wirelink:getEGPSliderTable(Ind:number)
+    {
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPSLIDERS:exists(EID)){return table()}
+        return EGPSLIDERS[EID,table][Ind,table]
+    }
+    function number wirelink:getEGPSliderValue(Ind:number)
+    {
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPSLIDERS:exists(EID)){return 0}
+        return EGPSLIDERS[EID,table][Ind,table]["Value",number]
+    }
+    function table clkEGPSlider()
+    {
+        if(!LIB_EGPSLIDER_CLK){return table()}
+        return table(LIB_EGPSLIDER_CLK,LAST_EGPSLIDER_MOVED)
     }
 }
 if(keyClk())
@@ -46,11 +63,19 @@ if(keyClk())
             local SliderLine = EGP_LOCAL_X2["EGPIndexes",vector2][1] #Index of slider line.
             if(AimedEGPWL:egpObjectContainsPoint(SliderLine,CursorPos))
             {
+                local LPos = AimedEGPWL:egpPos(SliderLine)[1]
+                local Max = LPos+AimedEGPWL:egpSize(SliderLine)[1]/2
+                local Min = LPos-AimedEGPWL:egpSize(SliderLine)[1]/2
+                local Val = CursorPos[1]/(Max+abs(Min))
+                EGP_LOCAL_X2["Value",number]=Val
                 local Pos = vec2(CursorPos[1],AimedEGPWL:egpPos(SliderLine)[2])
                 AimedEGPWL:egpPos(EGP_LOCAL_X2["EGPIndexes",vector2][2],Pos) #Sets circle pos on slider to cursor pos + line y
+                
+                LIB_EGPSLIDER_CLK = 1
+                LAST_EGPSLIDER_MOVED=EGP_LOCAL_X2
+                timer("lastegpsliderunclk5555",5)
             }
         }
     }
 }
-
-
+if(clk("lastegpsliderunclk5555")){LIB_EGPSLIDER_CLK=0}

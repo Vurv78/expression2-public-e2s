@@ -35,10 +35,16 @@ if(first())
         if(!EGPSLIDERS:exists(EID)){return 0}
         return EGPSLIDERS[EID,table][Ind,table]["Value",number]
     }
-    function table clkEGPSlider()
+    function table clkEGPSliderData()
     {
         if(!LIB_EGPSLIDER_CLK){return table()}
         return table(LIB_EGPSLIDER_CLK,LAST_EGPSLIDER_MOVED)
+    }
+    function number clkEGPSlider()
+    {
+        #Returns the value of the latest changed egpslider
+        if(!LIB_EGPSLIDER_CLK){return 0}
+        return LAST_EGPSLIDER_MOVED["Value",number]
     }
 }
 if(keyClk())

@@ -10,11 +10,15 @@ if(first())
         local EGP_ENTITY_ID = EGP_ENTITY:id()
         if(!EGPSLIDERS:exists(EGP_ENTITY_ID)){EGPSLIDERS[EGP_ENTITY_ID,table]=table()}
         local EGP_SPECIFIC_TABLE=EGPSLIDERS[EGP_ENTITY_ID,table]
+        local EGPWL = EGP_ENTITY:wirelink()
         #Makes a table per EGP 
         local Tab = table()
         Tab["EGPIndexes",vector2]=EGPIndexes
         Tab["Color",vector]=Color
         Tab["Value",number]=0
+        Tab["Index",number]=EGP_SPECIFIC_TABLE:count()+1
+        Tab["Min",number]=(Pos[1]-Size[1]/2)
+        Tab["Max",number]=(Pos[1]+Size[1]/2)
         EGP_SPECIFIC_TABLE:pushTable(Tab)
         #EgpIndexes, 1 = line, 2 = circle
         This:egpRoundedBox(EGPIndexes[1],Pos,Size)
@@ -69,10 +73,9 @@ if(keyClk())
             local SliderLine = EGP_LOCAL_X2["EGPIndexes",vector2][1] #Index of slider line.
             if(AimedEGPWL:egpObjectContainsPoint(SliderLine,CursorPos))
             {
-                local LPos = AimedEGPWL:egpPos(SliderLine)[1]
-                local Max = LPos+AimedEGPWL:egpSize(SliderLine)[1]/2
-                local Min = LPos-AimedEGPWL:egpSize(SliderLine)[1]/2
-                local Val = CursorPos[1]/(Max+abs(Min))
+                local Max = EGP_LOCAL_X2["Max",number]
+                local Min = EGP_LOCAL_X2["Min",number]
+                local Val = ((CursorPos[1]-Min)/(Max-Min))
                 EGP_LOCAL_X2["Value",number]=Val
                 local Pos = vec2(CursorPos[1],AimedEGPWL:egpPos(SliderLine)[2])
                 AimedEGPWL:egpPos(EGP_LOCAL_X2["EGPIndexes",vector2][2],Pos) #Sets circle pos on slider to cursor pos + line y

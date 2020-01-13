@@ -1,0 +1,25 @@
+@name functions.hololine
+if(first())
+{
+    function void holoLine(Ind,V1:vector,V2:vector,Color:vector,Scale:vector2)
+    {
+        HE = holoEntity(Ind)
+        if(HE:isValid() & HE["isholorope",number]==1)
+        {
+            local Dist = V1:distance(V2)
+            local Model = "models/props_docks/dock02_pole02a.mdl"
+            holoPos(Ind,V2 + (V1-V2)/2)
+            holoScale(Ind,vec(Scale[1],Scale[2],Dist/415))
+            holoAng(Ind,(V1-V2):toAngle()+ang(90,0,0))
+            if(Color!=HE:getColor()){holoColor(Ind,Color)}
+        }else
+        {
+            local Dist = V1:distance(V2)
+            local Model = "models/props_docks/dock02_pole02a.mdl"
+            holoCreate(Ind,V2 + (V1-V2)/2,vec(Scale[1],Scale[2],Dist/415),(V1-V2):toAngle()+ang(90,0,0),Color,Model)
+            holoMaterial(Ind,"models/debug/debugwhite")
+            holoDisableShading(Ind,1)
+            HE["isholorope",number]=1
+        }
+    }
+}

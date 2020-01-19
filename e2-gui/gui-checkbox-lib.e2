@@ -1,0 +1,98 @@
+@name libraries.checkbox
+@persist [EGPCHECKBOXES EGPSREGISTERED_CHECKBOX LAST_EGPCHECKBOX_MOVED]:table LIB_EGPCHECKBOX_CLK
+if(first())
+{
+    runOnKeys(players(),1,array("e"))
+    EGPCHECKBOXES=table()
+    function number wirelink:createEGPCheckBox(EGPIndex,[Color]:vector, [Pos Size]:vector2)
+    {
+        local EGP_ENTITY = This:entity()
+        local EGP_ENTITY_ID = EGP_ENTITY:id()
+        if(!EGPCHECKBOXES:exists(EGP_ENTITY_ID)){EGPCHECKBOXES[EGP_ENTITY_ID,table]=table()}
+        local EGP_SPECIFIC_TABLE=EGPCHECKBOXES[EGP_ENTITY_ID,table]
+        local EGPWL = EGP_ENTITY:wirelink()
+        #Makes a table per EGP 
+        local Tab = table()
+        Tab["EGPIndex",number]=EGPIndex
+        Tab["Color",vector]=Color
+        Tab["Value",number]=0
+        Tab["Index",number]=EGPIndex
+        EGP_SPECIFIC_TABLE:pushTable(Tab)
+        This:egpBox(EGPIndex,Pos,Size)
+        This:egpColor(EGPIndex,Color)
+        This:egpMaterial(EGPIndex,"vgui/icon_checkbox_empty")
+        EGPSREGISTERED_CHECKBOX[EGP_ENTITY_ID,entity]=EGP_ENTITY
+        return Tab["Index",number]
+    }
+    function number wirelink:setEGPCheckboxValue(Index:number,Bool:number)
+    {
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPCHECKBOXES:exists(EID)){return 0}
+        local LocTab=EGPCHECKBOXES[EID,table][Index,table]
+        Bool=clamp(round(Bool),0,1)
+        LocTab["Value",number] = Bool
+        This:egpMaterial(1,"vgui/icon_checkbox" + (!Bool ? "_empty" : ""))
+        return 1
+    }
+    function table wirelink:getEGPCheckboxTable(Ind:number)
+    {
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPCHECKBOXES:exists(EID)){return table()}
+        return EGPCHECKBOXES[EID,table][Ind,table]
+    }
+    function number wirelink:getEGPCheckboxValue(Ind:number)
+    {
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPCHECKBOXES:exists(EID)){return 0}
+        return EGPCHECKBOXES[EID,table][Ind,table]["Value",number]
+    }
+    function number lastEGPCheckboxVal()
+    {
+        if(!LIB_EGPCHECKBOX_CLK){return 0}
+        return LAST_EGPCHECKBOX_MOVED["Value",number]
+    }
+    function number clkEGPCheckbox()
+    {
+        #Returns the value of the latest changed egpcheckbox
+        if(!LIB_EGPCHECKBOX_CLK){return 0}
+        return LIB_EGPCHECKBOX_CLK
+    }
+}
+if(keyClk())
+{
+    local EGPCOUNT=EGPSREGISTERED_CHECKBOX:count()
+    local Ply = keyClk()
+    
+    local AimedEGP = Ply:aimEntity()
+    local AimedEGP_ID=AimedEGP:id()
+    if(keyClk(Ply)==1&&AimedEGP:type()=="gmod_wire_egp" && EGPSREGISTERED_CHECKBOX:exists(AimedEGP_ID))
+    {
+        local CBCounts = table() #Makes table containing # of checkboxes in an EGP.
+        local EGP_LOCAL_TABLE = EGPCHECKBOXES[AimedEGP_ID,table] #Table local of all checkboxes in egp.
+        if(!CBCounts:exists(AimedEGP_ID)){CBCounts[AimedEGP_ID,number]=EGP_LOCAL_TABLE:count()}
+        #If no cbcount for an egp exists, make it with checkbox table. more efficient than checking each time.
+        local CBCount = CBCounts[AimedEGP_ID,number]
+        local AimedEGPWL = AimedEGP:wirelink()
+        local CursorPos=AimedEGPWL:egpCursor(Ply)
+        for(I=1,CBCount) #loops through all checkboxes in an egp.
+        {
+            local EGP_LOCAL_X2 = EGP_LOCAL_TABLE[I,table] #Number cb
+            local Checkbox = EGP_LOCAL_X2["EGPIndex",number] #Index of checkbox
+            if(AimedEGPWL:egpObjectContainsPoint(Checkbox,CursorPos))
+            {
+                EGP_LOCAL_X2["Value",number] = !EGP_LOCAL_X2["Value",number]
+                local Val = EGP_LOCAL_X2["Value",number]
+                AimedEGPWL:egpMaterial(Checkbox,"vgui/icon_checkbox" + (!Val ? "_empty" : "") )
+                LIB_EGPCHECKBOX_CLK = 1
+                LAST_EGPCHECKBOX_MOVED=EGP_LOCAL_X2
+                timer("lastegpcheckboxunclk5555",5)
+            }
+        }
+    }
+}
+if(clk("lastegpcheckboxunclk5555")){LIB_EGPCHECKBOX_CLK=0}
+
+# E2 EGP Checkbox library by Vurv.
+# Basically the same as the EGP slider library, very nice.
+# Feel free to edit this to add cool sounds to buttons and stuff for your custom projects.
+# PUBLIC ON - https://github.com/Vurv78/expression2-public-e2s/blob/master

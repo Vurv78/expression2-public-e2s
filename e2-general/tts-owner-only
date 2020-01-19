@@ -1,0 +1,19 @@
+@name TTS
+@persist O:entity
+if(first()){
+    runOnChat(1)
+    O=owner()
+}
+#ifdef streamHelp()
+if(chatClk(O)){
+    if(O:lastSaid()[1] == "!"){
+        hideChat(1)
+        O:streamStart(1,10000,"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=" + O:lastSaid():sub(2))
+    }
+}
+#else
+    error("This server does not have streamcore!")
+#endif
+
+#E2 By Vurv, Made on 1/19/2020.
+#A basic 16 line TTS e2 (very efficient, feel free to configure if you want it to work with other players.)

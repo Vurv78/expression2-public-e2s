@@ -21,4 +21,5 @@ __Method 2: - Copy into Expression 2:__
 
 __Both Methods:__
 5. Read for any additional instructions in the form of e2 comments.
-###Please, let me know if you encounter any bugs with my e2s.
+
+### Please, let me know if you encounter any bugs with my e2s.

@@ -1,0 +1,17 @@
+@name Checkbox Example
+@inputs EGP:wirelink
+@persist K
+#include "libraries.checkbox"
+interval(100)
+if(first())
+{
+    EGP:egpClear(),K=1
+    EGP:createEGPCheckBox(1,vec(255),vec2(156,256),vec2(60))
+    EGP:createEGPCheckBox(2,vec(255),vec2(256,256),vec2(60))
+    EGP:createEGPCheckBox(3,vec(255),vec2(356,256),vec2(60))
+}
+
+for(I=1,3){
+    K=(K+1)%360
+    EGP:egpColor(I,hsv2rgb(K,1,1))   
+}

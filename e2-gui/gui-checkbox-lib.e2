@@ -1,3 +1,9 @@
+# E2 EGP Checkbox library by Vurv.
+# Basically the same as the EGP slider library, very nice.
+# Feel free to edit this to add cool sounds to buttons and stuff for your custom projects.
+# PUBLIC ON - https://github.com/Vurv78/expression2-public-e2s/blob/master
+# Last Updated: 1/20/2020, Added WL:setEGPCheckboxWhitelist(N,R)
+
 @name libraries.checkbox
 @persist [EGPCHECKBOXES EGPSREGISTERED_CHECKBOX LAST_EGPCHECKBOX_MOVED]:table LIB_EGPCHECKBOX_CLK
 if(first())
@@ -23,6 +29,16 @@ if(first())
         This:egpMaterial(EGPIndex,"vgui/icon_checkbox_empty")
         EGPSREGISTERED_CHECKBOX[EGP_ENTITY_ID,entity]=EGP_ENTITY
         return Tab["Index",number]
+    }
+    function number wirelink:setEGPCheckboxWhitelist(Index,WhiteList:array)
+    {
+        #sets who can use the checkbox.
+        local EID = This:entity():id() #entity id of EGP screen
+        if(!EGPCHECKBOXES:exists(EID)){return 0}
+        if(!EGPCHECKBOXES[EID,table]:exists(Index)){return 0}
+        local LocTab=EGPCHECKBOXES[EID,table][Index,table]
+        LocTab["Whitelist",array]=WhiteList
+        return 1
     }
     function number wirelink:setEGPCheckboxValue(Index:number,Bool:number)
     {
@@ -57,6 +73,11 @@ if(first())
         if(!LIB_EGPCHECKBOX_CLK){return 0}
         return LIB_EGPCHECKBOX_CLK
     }
+    function number array:contains(E:entity)
+    {
+        foreach(K,Ent:entity=This){if(Ent==E){return 1}}
+        return 0
+    }
 }
 if(keyClk())
 {
@@ -77,6 +98,7 @@ if(keyClk())
         for(I=1,CBCount) #loops through all checkboxes in an egp.
         {
             local EGP_LOCAL_X2 = EGP_LOCAL_TABLE[I,table] #Number cb
+            if(EGP_LOCAL_X2:exists("Whitelist")){if(!EGP_LOCAL_X2["Whitelist",array]:contains(Ply)){continue}}
             local Checkbox = EGP_LOCAL_X2["EGPIndex",number] #Index of checkbox
             if(AimedEGPWL:egpObjectContainsPoint(Checkbox,CursorPos))
             {
@@ -91,8 +113,3 @@ if(keyClk())
     }
 }
 if(clk("lastegpcheckboxunclk5555")){LIB_EGPCHECKBOX_CLK=0}
-
-# E2 EGP Checkbox library by Vurv.
-# Basically the same as the EGP slider library, very nice.
-# Feel free to edit this to add cool sounds to buttons and stuff for your custom projects.
-# PUBLIC ON - https://github.com/Vurv78/expression2-public-e2s/blob/master

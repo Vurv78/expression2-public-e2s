@@ -21,5 +21,12 @@ __Method 2: - Copy into Expression 2:__
 
 __Both Methods:__
 5. Read for any additional instructions in the form of e2 comments.
-
+## How to USE Expression2s/Libraries:
+  Libraries:
+  1. Use #include "e2name" in your code with e2name being the name of the e2 you saved the library in.
+  2. Enjoy, all the functions will appear red as if the e2 doesn't recognize them but it'll work.
+  E2s:
+  1. Follow the instructions in the written e2 if there are any.
+  2. Enjoy, all the functions will appear red as if the e2 doesn't recognize them but it'll work.
+  2a. If there aren't, just read the code to see what it does or make an issue to this github.
 ### Please, let me know if you encounter any bugs with my e2s.

@@ -1,0 +1,34 @@
+# E2 by Vurv, public on https://github.com/Vurv78/expression2-public-e2s/new/master/e2-libs-general
+# Adds rudimentary "hooks" that imitate how lua hooks work.
+# Basically, just restricts something like a runOnTick(1) to only execute one given function.
+
+@name hook.Add
+@persist Ticks:array
+if(first())
+{
+    function void runOnTick(N,S:string)
+    {
+        runOnTick(1)
+        if(N)
+        {
+            foreach(K,Str:string=Ticks){if(Str==S){return}} # if does exist exit
+            Ticks:pushString(S)
+        }else
+        {
+            local TC = Ticks:count()
+            foreach(K,Str:string=Ticks){ if(Str==S){Ticks:remove(K)} }# if does exist remove
+        }
+    }
+}
+
+if(tickClk())
+{
+    if(Ticks:count()>0)
+    {
+        foreach(K,Str:string=Ticks)
+        {
+            Str()
+        }
+        reset()
+    }    
+}

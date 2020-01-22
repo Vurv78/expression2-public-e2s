@@ -3,21 +3,31 @@
 # Basically, just restricts something like a runOnTick(1) to only execute one given function.
 
 @name hook.Add
-@persist Ticks:array
+@persist [Ticks]:array
+@persist [RunOnKeys]:table
 if(first())
 {
-    function void runOnTick(N,S:string)
+    function void runOnTick(N,Func:string)
     {
         runOnTick(1)
         if(N)
         {
-            foreach(K,Str:string=Ticks){if(Str==S){return}} # if does exist exit
-            Ticks:pushString(S)
+            foreach(K,Str:string=Ticks){if(Str==Func){return}} # if does exist exit
+            Ticks:pushString(Func:lower())
         }else
         {
             local TC = Ticks:count()
-            foreach(K,Str:string=Ticks){ if(Str==S){Ticks:remove(K)} }# if does exist remove
+            foreach(K,Str:string=Ticks){ if(Str==Func){Ticks:remove(K)} }# if does exist remove
         }
+    }
+    function void runOnKeys(Plys:array,On,Filter:array,Func:string)
+    {
+        runOnKeys(Plys,On)
+        local Tab = table()
+        Tab["Filter",array]=Filter
+        Tab["Players",array]=Plys
+        Tab["Func",string]=Func
+        RunOnKeys:pushTable(Tab)
     }
 }
 
@@ -31,4 +41,28 @@ if(tickClk())
         }
         reset()
     }    
+}
+
+if(keyClk())
+{
+    local RC = RunOnKeys:count()
+    local KeyPressed = keyClkPressed()
+    for(I=1,RC)
+    {
+        local Tab = RunOnKeys[I,table]
+        local Filter = Tab["Filter",array]
+        local Cont = 0
+        foreach(K,Str:string=Filter){if(Str==KeyPressed){Cont=1}}
+        if(Cont)
+        {
+            local Plys = Tab["Players",array]
+            Cont=0
+            foreach(K,Ply:entity=Plys){if(keyClk()==Ply){Cont=1}}
+            if(Cont)
+            {
+                Tab["Func",string]()
+            }
+        }
+    }
+    reset()
 }

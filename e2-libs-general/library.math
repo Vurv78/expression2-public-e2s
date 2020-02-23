@@ -1,0 +1,12 @@
+@name library.math
+# Uploaded by Vurv @ https://github.com/Vurv78/expression2-public-e2s/new/master/e2-libs-general
+# Discord ID: 363590853140152321
+# In Progress, More functions to come
+if(first())
+{
+    function vector vector:reflect(Normal:vector,Perc)
+    {
+        # Perc = Percentage of reflectiveness (100% = perfect reflection, can go over 100% tho)
+        return -This:rotateAroundAxis(Normal,180*(Perc/100))
+    }
+}

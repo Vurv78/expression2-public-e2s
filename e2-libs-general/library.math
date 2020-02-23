@@ -9,4 +9,9 @@ if(first())
         # Perc = Percentage of reflectiveness (100% = perfect reflection, can go over 100% tho)
         return -This:rotateAroundAxis(Normal,180*(Perc/100))
     }
+    function number vector:aimingPercent(V:vector)
+    {
+        # Gives you percentage from 0 - 100% of whether vector is aiming at the other.
+        return (This:dot(V)/V:length()*100+100)/2
+    }
 }

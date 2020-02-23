@@ -1,0 +1,630 @@
+# Uploaded by Vurv (Discord <363590853140152321>)
+# @ https://github.com/Vurv78/expression2-public-e2s/new/master
+# Not the oldest, but an older variant of my raytracer.
+# This is the last raytracer I made that used recursion.
+# It's pretty bad.. just learn from it
+# Some functions will be broken as they're from included files. Just get rid of that code, it's not essential.
+# Reflect is in my math library if you want to pull it from there
+
+@name LightWeight Raytracer
+@inputs [Scr]:wirelink
+@persist [Seed CurTex DataString]:string
+
+@persist [X Y Res DONE OVERCLOCK LoadedFiles MaxCPU MaxOPS BounceMax AntiAliasing]
+@persist [TimerSeconds LightsCount TransparentMax LightsEnabled LightBrightness UseSun]
+@persist [LightBounceMax]
+
+@persist [Mat Tex PropMat DataTable]:table
+@persist [Clipboard]:table
+@persist [Lights]:array
+@persist [Sun Dir OldDir]:vector
+@persist [Gtable]:gtable
+@persist [RopeProp]:entity
+@model models/dav0r/camera.mdl
+
+interval(10)
+
+#include "functions.timeformat"
+#include "functions.math.reflect"
+
+if(first()){
+
+    OVERCLOCK = 0 #Only allows necessary functions to run, no cosmetics.
+    FOV = 90 # in degrees, 90 default
+    BounceMax = 5 #how many reflections max in a single trace
+    TransparentMax = 5 #how many reflections max in a single trace
+    AntiAliasing = 90 #0-100 in percentage to blend, less = more blend, 90 default
+    Processors = 8
+    
+    #LIGHTING
+    LightsEnabled = 0
+    LightBrightness = 1 #Default light brightness
+    LightBounceMax = 1
+    
+    UseSun = 1
+    #LIGHTING
+    
+    if(!fileCanLoad()){error("can not load file, wait a little longer! ")}
+    
+    MaxOPS = 10000
+    MaxCPU = 2500
+    
+    if(isSinglePlayer()){concmd("wire_expression2_quotatick 250000; wire_expression2_quotasoft 100000; wire_expression2_quotahard 1000000")}
+
+    runOnChat(1)
+    runOnFile(1)
+    
+    rangerPersist(1)
+    rangerHitEntities(1)
+    rangerHitWater(1)
+    rangerFilter(players())
+    rangerFilter( array(entity(),Scr:entity()) )
+    #ifdef entity:constraintBreak()
+    entity():constraintBreak()
+    #endif
+    entity():setMass(50000)
+    
+    DONE=1
+    
+    Scr[1048569]=3 #color mode
+    Res = Scr[1048572] #Scr[1048573]
+    
+    Y=0
+    X=0
+    
+    #Sun = vec(-13244.454102,13246.969727,3060.398193)
+    Sun = vec(1073.875488,9110.449219,3071.968262)
+    #Sun = entity():pos()
+    holoCreate(1,Sun,vec(200))
+    holoColor(1,vec(255,255,0))
+    holoModel(1,"hq_icosphere")
+    holoDisableShading(1,1)
+    holoVisible(1,players(),0)
+    holoVisible(1,owner(),1)
+    
+    findIncludeClass("gmod_wire_light")
+    findIncludeClass("gmod_light")
+    findInSphere(entity():pos(),10000)
+    
+    if(UseSun){Lights = array(holoEntity(1))}else{Lights = array()}
+    
+    if(LightsEnabled){
+    
+        foreach(Key,Light:entity = findToArray()){
+            #WL = Light:wirelink()
+            #Table = table(Light:pos(),Light:forward(),WL["RGB",vector]!= vec(0) ? WL["RGB",vector] : vec(255))
+            #Lights:pushTable(Table)
+            Lights:pushEntity(Light)
+        }
+    
+        LightsCount = Lights:count()
+    }
+    
+    #ifdef spawnProcessor(vector,angle)
+    if(Processors != 0){
+        for(I = 1,Processors){
+            Processor = spawnProcessor(entity():toWorld(vec(0,-2 + -1*I,-4)),entity():toWorld(ang(90,-90,0)))
+            Processor:parentTo(entity())
+            Processor:setColor(vec(255,0,255))
+        }
+    }
+    #endif
+    
+    #concrete,grass,flesh,wood,dirt,default,sand,glass,plastic,metal,grate,tile,slosh,computer
+    Mat = table("concrete" = vec(125, 136, 153),"grass" = vec(88, 135, 62),"flesh" = vec(204, 63, 89),
+"wood" = vec(201, 133, 34),"dirt" = vec(102, 63, 6),"default" = vec(80,80,200),"sand" = vec(237, 231, 170),
+"glass" = vec(102, 109, 175),"plastic" = vec(178, 189, 193),"metal" = vec(226, 217, 220),
+"grate" = vec(140, 84, 74),"tile" = vec(217, 220, 224),"slosh" = vec(104, 165, 209),"computer" = vec(0,0,200))
+    
+    PropMat = table("models/XQM//LightLinesGB" = vec(255,0,0))
+    
+    #fileWrite("raytracer/propmat/default.txt",vonEncode(PropMat))
+
+    #fileWrite("raytracer/tex/default.txt",vonEncode(table()))
+    fileLoad("raytracer/tex/default.txt")
+    
+    #Seed = (Res:toString() + date())
+    Date = date()
+    Seed = "l" + (Res:toString() +  "l" + Date["min",number]:toString() + "l" + Date["hour",number]:toString() + "l" + Date["month",number]:toString() + "l" + Date["day",number]:toString() + "l" + Date["year",number]:toString())
+    
+    #fileWrite("bitmaps" + Seed + ".txt","")
+    
+    #fileWrite("raytracer/default.txt","")
+    
+    InSkyBox = 0
+    Reflections = array()
+    ReflectionsW = array()
+    Colors = array()
+    REFLECTING=0
+    Bounces = 0
+    BounceShades = array()
+    TransparentColors = array()
+    INLOOP = 0
+    LightBounces = 0
+    
+    if(!OVERCLOCK){
+    
+        holoCreate(2,vec(),vec(2))
+        holoModel(2,"hq_icosphere")
+        holoDisableShading(2,1)
+    }
+    
+    entity():setName("Raytracing " + Res+"x"+Res +"\n Max CPU: " + MaxCPU +  "\n Max OPS: " + MaxOPS + "\n Max Reflections: " + BounceMax + "\n Seed: " + Seed + "\n Vectors/Pixels: " + Res^2 + "\nOverclock: " + OVERCLOCK + "\nAnti-Aliasing: " + AntiAliasing + "%" + "\nEstimated Render Time: NaN" + "\n Lights: " + LightsCount)
+    
+    function vector mixArr(Arr:array,Ratio){
+        Color = vec()
+        foreach(Key,Vec:vector = Arr){
+            Color = mix(Color,Vec,Ratio)   
+        }
+        return Color
+    }
+    
+function table raytrace(Dist,Dir:vector,Pos:vector,Sun:vector){
+    
+    Ranger = rangerOffset(Dist,Pos,Dir)
+    RangerData = Ranger:toTable()
+    
+    HitEntity = RangerData["Entity",entity]
+    HitTexture = RangerData["HitTexture",string]
+    HitSky = RangerData["HitSky",number]
+    HitPos = RangerData["HitPos",vector]
+    HitNormal = RangerData["HitNormal",vector]
+    
+    Reflect = Dir:reflect(HitNormal)
+    #Reflect = Dir+HitNormal
+    
+    MatType = Ranger:matType()
+    N = sqrt(randint(1,3)-1)
+    PreviousPixel = DataTable[(X-1)+Y*Res,vector]
+    ExistsTex = Tex:exists(HitTexture)
+    ExistsMat = Mat:exists(MatType)
+    
+    
+    if(LightsEnabled & LightBounces<=BounceMax){
+        Shadings = array()
+        foreach(Key,Light:entity = Lights){
+            LPos = Light:pos()
+            LightDir = (LPos-HitPos)
+            Dist = LPos:distance(HitPos)
+            if(LightBounces<=LightBounceMax){
+            
+                if(UseSun & Key==1){
+                    Shadings[Key,number] = (( LightDir:normalized():dot(HitNormal)+1)/4)
+                    #Shadings[Key,number] = Shadings[Key,number] + raytrace(Dist,Reflect,Pos,Sun)[2,number]/10
+                    LightBounces+=1
+                }else{
+                    Radius = 400
+                    Equat = ((-Dist/100+ (Radius/100) )/10)*LightBrightness
+                    InRange = Dist<400
+                    Rnger = rangerOffset(100000,HitPos,LightDir)
+                    #OtherShade = (( LightDir:normalized():dot(HitNormal)+1)/2)*Equat*InRange
+                    if(Rnger:entity()==Light){Shadings[Key,number] = (InRange*Equat)*1.5}else{Shadings[Key,number]= -(InRange*Equat)/2}
+                    #Shadings[Key,number] = Shadings[Key,number] + raytrace(Dist,Reflect,Pos,Sun)[2,number]/10
+                    LightBounces+=1
+                }
+            }
+        }
+        Shading = clamp(Shadings:sum(),0,3)
+        
+    }elseif(LightBounces<=LightBounceMax){
+    
+        LightDir = (Sun-HitPos)
+        Shading = (( LightDir:normalized():dot(HitNormal)+1)/2)
+        
+        if(!Ranger:hitSky()){
+            Thingy = raytrace(Dist,Reflect,Pos,Sun)["shading",number]/10
+            CanHitSun = rangerOffset(Dist,HitPos,LightDir):hitSky()
+            Shading = (CanHitSun ? Shading : Shading*0.8)
+        }
+        LightBounces+=1
+        Shading+=Thingy
+        Shading/=2
+    }
+    
+    if(HitEntity){
+        Color = HitEntity:getColor(),
+        if(HitEntity:getAlpha()!=255 | HitEntity:getMaterial() == "models/dog/eyeglass"){MatType = "glass"} 
+    }else{
+        Color = ExistsTex ? Tex[HitTexture,vector] : ExistsMat ? Mat[MatType,vector] : vec(255,0,255)
+    }
+    
+    Type = Ranger:hitSky() ? "SKY" : Ranger:entity():type()=="prop_physics" ? "PROP" : Ranger:entity():type()=="player"? "PLY" : Ranger:hitWorld() ? "WORLD" : "NaN"
+    
+    if(AntiAliasing){
+        Blend = changed(Type) ? 1 : changed(HitTexture) ? 1 : 0
+    }
+    
+    switch(MatType){
+    
+        case "slosh",
+            if(Type=="PROP"){RefractAngle = (Dir+HitNormal)/2}
+        break
+        
+        case "glass",
+            if(Type=="PROP"){RefractAngle = (Dir+HitNormal)/2}
+        break
+
+        default,
+        break
+    
+    }
+    
+    switch(Type){
+        
+        case "SKY",
+            
+            if(map()=="gm_bigcity"){
+
+                if(!InSkyBox){
+                
+                    local LocalPos = Pos/16.2961551784
+                    local Z = 4352 + abs(Pos[3]-(-11143.968750))/11.33
+                
+                    local LocalSun = Sun/16.2961551784
+                
+                    local LSunZ = 4352 + abs(Sun[3]-(-11143.968750))/11.33
+                
+                    InSkyBox=1
+                    raytrace(Dist,Dir,vec(LocalPos[1],LocalPos[2],Z),LocalSun:setZ(LSunZ))
+                    InSkyBox=0
+                
+                }else{
+                    N=0
+                    Shading = 1
+                }
+                
+            }else{
+                Shading = 1
+                N=0
+            }
+            
+        break
+        
+        case "PROP",
+            
+            switch(MatType){
+                
+                case "glass",
+                    
+                    if(Reflections:count()<=BounceMax){
+                    
+                        if(REFLECTING){
+                            rangerFilter(array(HitEntity))
+                            Color1 = Color
+                            raytrace(Dist,Reflect,HitPos,Sun)
+                            rangerReset()
+                            rangerFilter(array(entity(),Scr))
+                            Colors[Colors:count()+1,vector] = Color
+                        }else{
+                            Colors[Colors:count()+1,vector] = Color
+                            REFLECTING=1                            
+                            rangerFilter(array(HitEntity))
+                            raytrace(Dist,Reflect,HitPos,Sun)
+                            rangerReset()
+                            rangerFilter(array(entity(),Scr))
+                            REFLECTING=0
+                            Color = mixArr(Colors,0.25)
+                            Colors = array()
+                        }
+                    }elseif(TransparentColors:count()<=TransparentMax)
+                    {
+                        if(INLOOP){
+                            rangerFilter(array(HitEntity))
+                            raytrace(Dist,Dir,HitPos,Sun)
+                            rangerReset()
+                            rangerFilter(array(entity(),Scr))
+                            TransparentColors[TransparentColors:count()+1,vector] = Color
+                        }else{
+                            TransparentColors[TransparentColors:count()+1,vector] = Color
+                            INLOOP=1
+                            rangerFilter(array(HitEntity))
+                            raytrace(Dist,Dir,HitPos,Sun)
+                            rangerReset()
+                            rangerFilter(array(entity(),Scr))
+                            INLOOP=0
+                            Color = mixArr(TransparentColors,0.25)
+                        }
+                    }
+                    
+                break
+                
+                case "wood",
+                    N = sqrt(randint(-1,1)-1)
+                break
+            
+                default,
+                
+                break
+            }
+        break
+        
+        case "WORLD",
+            switch(MatType){
+            
+                case "glass",
+                    
+                    if(Reflections:count()<=BounceMax){
+                    
+                        if(!REFLECTING){
+                            Reflections[Reflections:count(),vector] = Color
+                            REFLECTING=1
+                            raytrace(Dist,Reflect,Ranger:pos(),Sun)
+                            REFLECTING=0
+                            Color = mixArr(Reflections,0.5)
+                            Reflections = array()
+                        }else{
+                            Reflections[Reflections:count(),vector] = Color
+                            raytrace(Dist,Reflect,HitPos,Sun)
+                        }
+                    
+                    }
+                break
+                
+                case "slosh",
+                if(Bounces<=BounceMax){
+                    ReflectionsW[ReflectionsW:count()+1,vector] = Color
+                    ReflectionsW[ReflectionsW:count()+1,vector] = raytrace(Dist,Reflect,HitPos,Sun)["color",vector]
+                    rangerHitWater(0)
+                    ReflectionsW[ReflectionsW:count()+1,vector] = raytrace(Dist,RefractAngle,HitPos,Sun)["color",vector]
+                    rangerHitWater(1)
+                    
+                    Color = mixArr(ReflectionsW,0.5)
+                    ReflectionsW = array()
+                    Bounces+=1
+                }
+                break
+                
+                default,
+    
+                break
+            }
+        break
+        
+        default,
+        
+        break
+    }
+    
+    if(Blend){
+        Color = mix(Color,PreviousPixel,AntiAliasing/100)
+    }
+
+    RayOutput = table(
+        "ranger" = Ranger,
+        "shading" = Shading,
+        "color" = Color,
+        "noise" = N,
+        "type" = Type,
+        "startpos" = Pos,
+        "hitpos" = HitPos
+    )
+    
+    return RayOutput
+}
+
+}
+if(!DONE){
+    
+    timer("addsecond",1000)
+    if(clk("addsecond")){
+        TimerSeconds+=1
+    }
+
+}
+
+if(DONE & Scr & changed(LoadedFiles) & LoadedFiles){
+    fileWrite("bitmaps/" + Seed + ".txt","")
+    DONE = 0
+}
+
+#(cpuUsage()*1000000<MaxCPU) & opcounter()<MaxOPS
+while(!DONE && ((cpuUsage()*1000000<MaxCPU) & opcounter()<MaxOPS) ){
+        
+        Dir = vec(1,1-(X/Res)-0.5,1-(Y/Res)-0.5):rotate(entity():angles())
+        print(Dir)
+        #+0.5
+        #print(1-X/Res,1-Y/Res)
+        Bounces = 0
+        Output = raytrace(600000,Dir,entity():toWorld(vec(3,0,0)),Sun)
+        LightBounces = 0
+        
+        if(!OVERCLOCK){
+            local RngPos = Output["hitpos",vector]
+            holoPos(2,RngPos)
+
+            RenderTime = ((X+Y*Res) - Res^2)
+            
+            entity():setName("Raytracing " + Res+"x"+Res +"\n Max CPU: " + MaxCPU +  "\n Max OPS: " + MaxOPS + "\n Max Reflections: " + BounceMax + "\n Seed: " + Seed + "\n Vectors/Pixels: " + Res^2 + "\nOverclock: " + OVERCLOCK + "\nAnti-Aliasing: " + AntiAliasing + "%" + "\nEstimated Render Time: " + RenderTime + "\n Lights: " + LightsCount + "\nMax Transparencies: " + TransparentMax)
+            #RopeProp:setPos(InSkyBox? (RngPos*16.2961551784):setZ(4352 - abs(RngPos[3]-(-11143.968750))*11.33) : RngPos)
+        }
+        
+        # DEBUG | Scr[(X-1)+Y*Res] = rgb2digi(Ray[3,vector]*Ray[2,number]+Ray[4,number],3)
+        
+        # HEX VERSION | fileAppend("bitmaps/" + Seed + ".txt",(Ray[3,vector]:tohex():concat(",")))
+        
+        Vectah = (Output["color",vector]*Output["shading",number])+Output["noise",number]
+        DataTable[(X)+Y*Res,vector] = Vectah
+        Scr[(X)+Y*Res] = rgb2digi(Vectah,3)
+        VectahRounded = clamp(round(Vectah),0,255)
+        DataString += (VectahRounded[1] +","+ VectahRounded[2] +","+ VectahRounded[3] + ",")
+        
+        if(X>=(Res-1)){
+        
+            if(Y>=(Res-1)){
+                DONE = 1 Y=0
+                entity():setName("Finished Render " + Res+"x"+Res +"\n Max CPU: " + MaxCPU +  "\n Max OPS: " + MaxOPS + "\n Max Reflections: " + BounceMax + "\n Seed: " + Seed + "\n Vectors/Pixels: " + Res^2 + "\nOverclock: " + OVERCLOCK + "\nAnti-Aliasing: " + AntiAliasing + "%" + "\nEstimated Render Time: " + "NAN" + "\n Lights: " + Lights:count() + "\nMax Transparencies: " + TransparentMax)
+                hint("Finished Render & saved bitmap @ " + "bitmaps/" + Seed + ".txt" ,5)
+                owner():soundPlay(1,1,"Buttons.snd15")
+                fileWrite("bitmaps/" + Seed + ".txt",DataString)
+            }else{
+                Y+=1
+            }
+            
+            X=0
+            
+        }else{
+            X+=1
+        }
+        
+}
+
+if(chatClk(owner())){
+    
+    L = owner():lastSaid():explode("")
+    LA = owner():lastSaid():explode(" ")
+
+    Prefix = "!"
+
+    if(L[1,string]==Prefix){
+        hideChat(1)
+        owner():soundPlay(2,1,"Buttons.snd15")
+    }
+    
+    if(LA[1,string]==Prefix+"set"){
+        
+        switch(LA[2,string]){
+        
+            case "tex",
+                local Vec = vec(LA[3,string]:toNumber(),LA[4,string]:toNumber(),LA[5,string]:toNumber())
+                Tex[owner():eyeTrace():hitTexture(),vector] = Vec
+                printColor(vec(100),"Saved texture ",Vec,Vec:toString(),vec(100)," to ", vec(200),owner():eyeTrace():hitTexture() )
+            break
+            
+            case "mat",
+                local Vec = vec(LA[3,string]:toNumber(),LA[4,string]:toNumber(),LA[5,string]:toNumber())
+                Mat[owner():eyeTrace():matType(),vector] = Vec
+                printColor(vec(100),"Saved material ",Vec,Vec:toString(),vec(100)," to ", vec(150),owner():eyeTrace():matType() )
+            break
+            
+            case "propmat",
+                local Vec = vec(LA[3,string]:toNumber(),LA[4,string]:toNumber(),LA[5,string]:toNumber())
+                Mat[owner():eyeTrace():entity():getMaterial(),vector] = Vec
+                printColor(vec(100),"Saved prop material ",Vec,Vec:toString(),vec(100)," to ", vec(150),owner():eyeTrace():entity():getMaterial() )
+            break
+            
+            default,
+                print("Invalid Input @ LS[2,string]")
+            break
+            
+        }
+    
+    }
+    
+    if(LA[1,string]==Prefix+"save"){
+        
+        if(DONE){
+            switch(LA[2,string]){
+                case "tex",
+                    fileWrite("raytracer" + "/" + "tex" + "/" + LA[3,string] + ".txt",vonEncode(Tex))
+                    hint("Successfully saved" + " tex " + "to raytracer/tex/" + LA[3,string] + ".txt",5)
+                    owner():soundPlay(3,1,"Buttons.snd15")
+                break
+            
+                case "mat",
+                    fileWrite("raytracer" + "/" + "mat" + "/" + LA[3,string] + ".txt",vonEncode(Mat))
+                    hint("Successfully saved" + " mat " + "to raytracer/mat/" + LA[3,string] + ".txt",5)
+                    owner():soundPlay(3,1,"Buttons.snd15")
+                break
+                
+                case "propmat",
+                    fileWrite("raytracer" + "/" + "propmat" + "/" + LA[3,string] + ".txt",vonEncode(PropMat))
+                    hint("Successfully saved" + " propmat " + "to raytracer/propmat/" + LA[3,string] + ".txt",5)
+                    owner():soundPlay(3,1,"Buttons.snd15")
+                break
+            
+                default,
+                    hint("Error!! Invalid parameter at LS[2,string]",5)
+                break
+            }
+        }else{
+            hint("ERROR! Can not save when rendering!!",5)
+        }
+        
+    }
+    
+    if(LA[1,string]==Prefix+"copy"){
+        
+        switch(LA[2,string]){
+        
+            case "tex",
+                Clipboard["Tex",vector] = Tex[owner():eyeTrace():hitTexture(),vector]
+                printColor(vec(100),"Copied Texture ",Clipboard["Tex",vector],owner():eyeTrace():hitTexture())
+            break
+            
+            case "mat",
+                Clipboard["Mat",vector] = Mat[owner():eyeTrace():matType(),vector]
+                printColor(vec(100),"Copied Material ",Clipboard["Mat",vector],owner():eyeTrace():matType())
+            break
+            
+            default,
+                hint("Error! Invalid Parameter at LA[2,string]",5)
+            break
+        }
+    
+    }
+    
+    if(LA[1,string]==Prefix+"paste"){
+        
+        switch(LA[2,string]){
+        
+            case "tex",
+                Tex[owner():eyeTrace():hitTexture(),vector] = Clipboard["Tex",vector]
+                printColor(vec(100),"Pasted Texture ",Clipboard["Tex",vector],owner():eyeTrace():hitTexture())
+            break
+            
+            case "mat",
+                Mat[owner():eyeTrace():matType(),vector] = Clipboard["Mat",vector]
+                printColor(vec(100),"Pasted Material ",Clipboard["Mat",vector],owner():eyeTrace():matType())
+            break
+            
+            default,
+                hint("Error! Invalid Parameter at LA[2,string]",5)
+            break
+        }
+    }
+    
+    if(LA[1,string]==Prefix+"aim"){
+    
+        switch(LA[2,string]){
+        
+            case "tex",
+                printColor(Tex[owner():eyeTrace():hitTexture(),vector],owner():eyeTrace():hitTexture())
+            break
+            
+            case "mat",
+                printColor(Mat[owner():eyeTrace():matType(),vector],owner():eyeTrace():matType())
+            break
+            
+            default,
+                printColor(vec(255,0,0),"Error! Invalid parameter at LS[2,string]!")
+            break
+        
+        }
+    
+    }
+    
+    
+    if(LA[1,string]==Prefix+"curtex"){print(CurTex)}
+    if(LA[1,string]==Prefix+"reload"){DataTable = table(),DataString = "",DONE=0,X=0,Y=0 hint("Restarted Render!",4),fileWrite("bitmaps/" + Seed + ".txt","")}
+    if(LA[1,string]==Prefix+"stop"){printColor(vec(100),"Raytracer ran for " + "NAN" + " and ended at " + cpuUsage()*1000000),DONE=1, hint("Stopped Render, printing diagnostics",4)}
+    if(LA[1,string]==Prefix+"go"){DONE=0, hint("Played Render!",4)}
+    #ifdef setClipboardText(number)
+    if(LA[1,string]==Prefix+"seed"){hint("Copied seed to clipboard!",5),owner():setClipboardText(Seed)}
+    if(LA[1,string]==Prefix+"copydata"){owner():setClipboardText(DataString)}
+    #endif
+    if(LA[1,string]==Prefix+"cpu"){MaxCPU = LA[2,string]:toNumber(),hint("Set max cpu to " + MaxCPU,5)}
+    if(LA[1,string]==Prefix+"ops"){MaxOPS = LA[2,string]:toNumber(),hint("Set max operations per sec to " + MaxOPS,5)}
+    if(LA[1,string]==Prefix+"clr"){hint("Cleared Screen!",5),Scr[1048574]=1,DataTable = table(),DataString = ""}
+    
+    entity():setName("Raytracing " + Res+"x"+Res +"\n Max CPU: " + MaxCPU +  "\n Max OPS: " + MaxOPS + "\n Max Reflections: " + BounceMax + "\n Seed: " + Seed + "\n Vectors/Pixels: " + Res^2 + "\nOverclock: " + OVERCLOCK + "\nAnti-Aliasing: " + AntiAliasing + "%" + "\nEstimated Render Time: NaN" + "\n Lights: " + LightsCount + "\nMax Transparencies: " + TransparentMax)
+    
+}
+
+#fileWrite("raytracer/rough/default.txt",vonEncode(table()))
+
+if(fileClk()){
+    
+    if(fileClk("raytracer/tex/default.txt")){hint("loaded textures!",4) CurTex = "default",Tex = vonDecodeTable(fileRead()),fileLoad("raytracer/propmat/default.txt")}
+    if(fileClk("raytracer/propmat/default.txt")){hint("loaded prop materials!",4) PropMat = vonDecodeTable(fileRead()),LoadedFiles = 1}
+}
+

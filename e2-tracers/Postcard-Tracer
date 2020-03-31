@@ -1,0 +1,11 @@
+@name Postcard Tracer
+@persist X Y RS SD:vector F
+@inputs D:wirelink
+if(first()){
+runOnTick(1),RS=512-1,F=90
+D[1048574]=X=Y=0,D[1048569]=3,D[1048575]=1,D[1048572]=D[1048573]=RS,SD=sunDirection()}
+while(D&opcounter()<100000&cpuUsage()*1000000<5000){
+R=ranger(60000,(X - RS/2)/F/(RS/128),(Y - RS/2)/F/(RS/128)),RHN=R:hitNormal(),C = (vec(0.5) + RHN * vec(0.5))*255
+Di = (R:pos()-R:positionLeftSolid()):normalized(),RDi = ( SD - (2 * RHN:dot(SD) * RHN) )
+D[X+Y*RS] = R:hitSky() ? 255 : rgb2digi(C*clamp(0.2+RHN:dot(SD)+Di:dot(RDi)^64+rangerOffset(R:pos(),RDi*6*10^4):hitSky()/4,0,2),3)
+if((X+1)>=RS){Y=(Y+1)%RS},X = (X+1)%RS}

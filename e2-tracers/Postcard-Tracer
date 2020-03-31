@@ -2,7 +2,7 @@
 @persist X Y RS SD:vector F
 @inputs D:wirelink
 if(first()){
-runOnTick(1),RS=512-1,F=90
+runOnTick(1),RS=512-1,F=90 # GL Deciphering this garbage. It's not meant to be readable, it's fully meant just to be compact.
 D[1048574]=X=Y=0,D[1048569]=3,D[1048575]=1,D[1048572]=D[1048573]=RS,SD=sunDirection()}
 while(D&opcounter()<100000&cpuUsage()*1000000<5000){
 R=ranger(60000,(X - RS/2)/F/(RS/128),(Y - RS/2)/F/(RS/128)),RHN=R:hitNormal(),C = (vec(0.5) + RHN * vec(0.5))*255

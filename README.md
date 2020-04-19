@@ -19,7 +19,7 @@ __Method 2: - Copy into Expression 2:__
   3. Make sure everything is the same to github and that everything pasted successfully.
 
 __Both Methods:__
-5. Read for any additional instructions in the form of e2 comments.
+Read for any additional instructions in the form of e2 comments.
 ## How to USE Expression2s/Libraries:
   #### Libraries:
   1. Use #include "e2name" in your code with e2name being the name of the e2 you saved the library in.

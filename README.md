@@ -10,7 +10,6 @@ __Method 1 - Copy into GMOD:__
   2. Copy and paste ALL of it into a text file.
   3. Save that file and drag it into your gmod/garrysmod/data/expression2 folder
     "gmod" usually being [YOURSTEAMFOLDER]/steamapps/common/GarrysMod
-  4. Enjoy!
 
 __Method 2: - Copy into Expression 2:__
   This method is a little faster, but with e2s longer than a hundred lines, you will have to copy-paste multiple
@@ -18,7 +17,6 @@ __Method 2: - Copy into Expression 2:__
   1. Open the github public e2 text, of course.
   2. Copy and paste it into the expression 2 tool.
   3. Make sure everything is the same to github and that everything pasted successfully.
-  4. Enjoy!
 
 __Both Methods:__
 5. Read for any additional instructions in the form of e2 comments.

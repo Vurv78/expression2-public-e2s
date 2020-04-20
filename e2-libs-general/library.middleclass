@@ -62,3 +62,18 @@ function number table:isJewcy()
     return (This["sweetness",number]>This["MinJewciness",number])
 }
 
+Lemon = class("Lemon",Fruit)
+Lemon:init(20)
+
+TheLemon = Lemon:new()
+
+Apple = class("Apple",Fruit)
+Apple:init(70)
+
+TheApple = Apple:new()
+
+print(TheApple:isJewcy())
+
+print(TheLemon:isJewcy())
+
+

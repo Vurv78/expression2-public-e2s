@@ -1,0 +1,64 @@
+@name middleclass
+@persist Classes:table
+function table class(S:string)
+{
+    local T = Classes[S,table]
+    T["__name__",string] = S
+    T["__isnew__",number] = 0
+    return T
+}
+function table class(S:string,MainClass:table)
+{
+    # Making a subclass, S being the new (sub) class name, mainclass being the original class.
+    local MainTab = table()
+    if(MainClass["__isnew__",number])
+    {
+        MainTab = Classes[MainClass["__name__",string],table]:clone()
+    }else
+    {
+        MainTab = MainClass:clone()    
+    }
+    MainTab["__name__",string] = S
+    MainTab["__issub__",number] = 1
+    MainTab["__isnew__",number] = 0
+    return MainTab
+}
+function table table:new()
+{
+    local T = This:clone()
+    T["__isnew__",number]=1
+    return T
+}
+
+# Repetitive Static values per each type of value, since e2 sucks
+
+function table:setStaticValue(Var:string,Value)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,number] = Value}
+    else{Classes[This["__name__",string],table][Var,number]=Value}
+}
+function table:setStaticValue(Var:string,Value:string)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,string] = Value}
+    else{Classes[This["__name__",string],table][Var,string]=Value}
+}
+
+# Repetitive Static values per each type of value, since e2 sucks
+
+# BEYOND HERE IS AN EXAMPLE...
+
+function table:init(V)
+{
+    This["sweetness",number] = V    
+}
+
+local Fruit = class("Fruit")
+Fruit:setStaticValue("MinJewciness",56)
+
+function number table:isJewcy()
+{
+    return (This["sweetness",number]>This["MinJewciness",number])
+}
+

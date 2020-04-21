@@ -1,4 +1,4 @@
-@name middleclass
+@name expression2 middleclass
 @persist Classes:table
 function table class(S:string)
 {

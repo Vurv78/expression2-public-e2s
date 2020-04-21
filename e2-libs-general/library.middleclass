@@ -1,5 +1,8 @@
-@name expression2 middleclass
+@name middleclass
 @persist Classes:table
+
+if(first()){
+
 function table class(S:string)
 {
     local T = Classes[S,table]
@@ -32,41 +35,82 @@ function table table:new()
 
 # Repetitive Static values per each type of value, since e2 sucks
 
-function table:setStaticValue(Var:string,Value)
+function table:set(Var:string,Value)
 {
     if(This["__isnew__",number]!=1)
     {This[Var,number] = Value}
     else{Classes[This["__name__",string],table][Var,number]=Value}
 }
-function table:setStaticValue(Var:string,Value:string)
+function table:set(Var:string,Value:string)
 {
     if(This["__isnew__",number]!=1)
     {This[Var,string] = Value}
     else{Classes[This["__name__",string],table][Var,string]=Value}
 }
 
+function table:setStaticValue(Var:string,Value:vector)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,vector] = Value}
+    else{Classes[This["__name__",string],table][Var,vector]=Value}
+}
+
+function table:set(Var:string,Value:angle)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,angle] = Value}
+    else{Classes[This["__name__",string],table][Var,angle]=Value}
+}
+
+function table:set(Var:string,Value:vector2)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,vector2] = Value}
+    else{Classes[This["__name__",string],table][Var,vector2]=Value}
+}
+
+function table:set(Var:string,Value:table)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,table] = Value}
+    else{Classes[This["__name__",string],table][Var,table]=Value}
+}
+function table:set(Var:string,Value:array)
+{
+    if(This["__isnew__",number]!=1)
+    {This[Var,array] = Value}
+    else{Classes[This["__name__",string],table][Var,array]=Value}
+}
+
 # Repetitive Static values per each type of value, since e2 sucks
+}
+
+
+
 
 # BEYOND HERE IS AN EXAMPLE...
 
+# Defining an init function for the fruit class, but this would work for any table (Could make it error on different classes if needed)
 function table:init(V)
 {
     This["sweetness",number] = V    
 }
 
 local Fruit = class("Fruit")
-Fruit:setStaticValue("MinJewciness",56)
+Fruit:set("MinJewciness",56)
 
 function number table:isJewcy()
 {
     return (This["sweetness",number]>This["MinJewciness",number])
 }
 
+# Making a subclass
 Lemon = class("Lemon",Fruit)
 Lemon:init(20)
 
 TheLemon = Lemon:new()
 
+# Making another subclass
 Apple = class("Apple",Fruit)
 Apple:init(70)
 

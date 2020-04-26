@@ -1,0 +1,52 @@
+@name Color Tracer
+@inputs Scr:wirelink
+@persist [SunDir]:vector
+@persist X Y InitialTime CPU_MAX OPS_MAX Res:vector2
+@model models/dav0r/camera.mdl
+
+if(first()){
+    Res = vec2(512)
+    OPS_MAX = 10000
+    CPU_MAX = 2000
+    Scr[1048569]=3 #color mode
+    Scr[1048572]=Res[1] # Set the X res of the digital screen
+    Scr[1048573]=Res[2] # Set the Y res of the digital screen
+    Scr[1048575]=1 # Apply changes
+    SunDir = sunDirection() # Get the direction vector of the sun
+    X = Y = 0
+    runOnTick(1)
+    rangerPersist(1)
+    rangerFilter(entity()) # turn ranger persist on, which makes sure all rangers from now on will have this filter.
+    # This filter prevents the ranger from hitting the chip itself.
+    InitialTime = curtime() #Set a timestamp for when the trace first starts
+}
+while(opcounter()<OPS_MAX & (cpuUsage()*1000000)<CPU_MAX){
+    Dir = vec(1,1-(X/Res[1])-0.5,1-(Y/Res[2])-0.5):rotate(entity():angles())
+    # Gets a direction basically the camera aiming toward an invisible cube in front of it that moves up and
+    # to the side.
+    Trace = rangerOffset(60000,entity():pos(),Dir)
+    HITPOS = Trace:pos()
+    HitNormal = Trace:hitNormal()
+    if(Trace:hitSky())
+    {
+        SHADING = 1 #Just set it to 1 to not change the color.
+        Color = vec(0,0,200) #Sky color
+        # You don't need shading for the sky.
+    }else
+    {
+        Color = vec(255) # Default color is white
+        AMBIENT = 0.1 # Default color state.
+        DIFFUSE = Trace:hitNormal():dot(SunDir) #Sees how much the sun direction and the hitnormal are facing each other. Basic diffuse shading.
+        ReflectedDir = ( SunDir - (2 * HitNormal:dot(SunDir) * HitNormal) ) # The sun's reflected direction
+        SPECPOW = 64 # Look up specular exponent for more info
+        SPECULAR = Dir:dot(ReflectedDir)^SPECPOW # Compares the direction with the reflected direction.
+        IS_IN_SHADOW = rangerOffset(60000,HITPOS,ReflectedDir):hitSky()/4 # Returns a number around 1/4 if it isn't in a shadow or 0.
+        SHADING = clamp(AMBIENT+DIFFUSE+SPECULAR+IS_IN_SHADOW,0,2)
+    }
+    Scr[X+Y*Res[1]] = rgb2digi(Color*SHADING,3)
+    Scr[X+1+Y*Res[1]] = rgb2digi(vec(255,0,0),3)
+    if((X+1)>=Res[1]){Y=(Y+1)%Res[2]}
+    X = (X+1)%Res[1]
+    # Sets X and Y to their respective next values going from 0-Res
+    if(X==0&Y==0){error("Finished in : " + (curtime()-InitialTime):toString())}
+}

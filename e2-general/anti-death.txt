@@ -1,0 +1,30 @@
+@name antideath
+@persist [DP DV]:vector DA:angle O:entity DN
+
+if(first())
+{
+    runOnTick(1)
+    runOnDeath(1)
+    O=owner()
+    DP = O:pos()
+    DA = O:angles()
+    #DV = O:vel()
+    DN = O:inNoclip()
+}
+
+if(owner():isAlive())
+{
+    DP = O:pos()
+    DA = O:angles()
+    #DV = O:vel()
+    DN = O:inNoclip()    
+}
+while(!owner():isAlive() && perf(5))
+{
+    O:plySpawn()
+    O:teleport(DP)
+    O:plySetAng(DA)
+    #O:plyApplyForce(DV)
+    O:plyNoclip(DN)
+    concmd("stopsound")
+}

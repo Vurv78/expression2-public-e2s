@@ -21,7 +21,8 @@
 @persist [Gtable]:gtable
 @persist [RopeProp]:entity
 @model models/dav0r/camera.mdl
-
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 interval(10)
 
 #include "functions.timeformat"

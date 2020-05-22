@@ -1,9 +1,10 @@
-@name Color Tracer
+@name Beginner Tracer
 @inputs Scr:wirelink
 @persist [SunDir]:vector
 @persist X Y InitialTime CPU_MAX OPS_MAX Res:vector2
 @model models/dav0r/camera.mdl
-
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first()){
     Res = vec2(512)
     OPS_MAX = 10000

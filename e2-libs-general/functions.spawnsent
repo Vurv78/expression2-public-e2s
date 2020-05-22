@@ -1,0 +1,34 @@
+@name spawnSent Library
+@persist [SSent_Cache SSent_Types]:table
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+if( first() ){
+    SSent_Cache = table()
+    SSent_Types = table("gm_spawnsent ","gmod_spawnnpc ","gm_spawnvehicle ")
+    function spawnSent(Class:string,Pos:vector,Ang:angle,Frozen,Timeout,Type)
+    {
+        concmd(SSent_Types[Type,string]+Class)
+        local O = owner()
+        local Code = "gm_spwnsent_"+Class+SSent_Cache:count()
+        SSent_Cache[Code,table] = table("class"=Class,"apos"=O:aimPos(),"pos"=Pos,"ang"=Ang,"frozen"=Frozen)
+        timer(Code,Timeout)
+    }
+    spawnSent("npc_cscanner",entity():pos(),ang(),0,owner():ping()*5,2)
+}elseif(clkName())
+{
+    local Name = clkName()
+    if(SSent_Cache:exists(Name))
+    {
+        local T = SSent_Cache[Name,table]
+        findByClass(T["class",string])
+        findSortByDistance(T["apos",vector])
+        local Sent = findResult(1)
+        if(Sent){
+            Sent:teleport(T["pos",vector]) # Can be replaced with any other random extension's teleport function.
+            Sent:setAng(T["ang",angle])
+            Sent:propFreeze(T["frozen",number])
+        }else{hint("Sent timed out on creation",2)}
+        SSent_Cache:remove(Name)
+    }
+}
+

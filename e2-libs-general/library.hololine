@@ -1,4 +1,6 @@
-@name functions.hololine
+@name Hololine Function
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first())
 {
     function void holoLine(Ind,V1:vector,V2:vector,Color:vector,Scale:vector2)

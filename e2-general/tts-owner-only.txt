@@ -1,5 +1,7 @@
 @name TTS
 @persist O:entity
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first()){
     runOnChat(1)
     O=owner()

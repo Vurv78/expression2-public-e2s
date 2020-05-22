@@ -1,0 +1,145 @@
+@name Fake ULX
+@persist [U_DefaultColor U_YouColor]:vector #Colors
+@persist [CachedData ScheduleSay Nicknames]:table
+@persist PREFIX:string
+# Author -- Vurv (https://vurv.pythonanywhere.com)
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+if(first())
+{
+    U_YouColor = vec(74,0,131)
+    U_DefaultColor = vec(152,212,255)
+    function ulxPrint(User:entity,Message:string,Target:entity)
+    {
+        T = table(
+            "User" = User,
+            "Message" = Message,
+            "Target" = Target
+        )
+        CachedData:pushTable(T)
+        timer("u_ulxprintdel",User:ping())
+    }
+    function impersonate(Team,IsDead,[Name Text]:string)
+    {
+        local ColTeam = teamColor(Team)
+        if(IsDead)
+        {
+            chatPrint(vec(255,0,0),"*DEAD* ",vec(0),"[",ColTeam,Team:teamName(),vec(0),"]",ColTeam," "+Name,vec(255),": "+Text)
+        }else
+        {
+            chatPrint(vec(0),"[",ColTeam,Team:teamName(),vec(0),"]",ColTeam," "+Name,vec(255),": "+Text)
+        }
+    }
+    runOnChat(1)
+    PREFIX = "/"
+}
+if(clk("u_ulxprintdel"))
+{
+    if(CachedData:exists(1)){
+    
+    local Data = CachedData[1,table]
+    local User = Data["User",entity]
+    local Message = Data["Message",string]
+    local Target = Data["Target",entity]
+    local TargetName = User==Target ? "Yourself" : Target:name()
+    local TargetColor = User==Target ? U_YouColor : teamColor(Target:team())
+    chatPrint(User,U_YouColor,"You",U_DefaultColor," "+Message+" ",TargetColor,TargetName)
+    TargetColor = teamColor(Target:team())
+    TargetName = User==Target ? "Themself" : Target:name()
+    foreach(K,Ply:entity = players())
+    {
+        if(Ply==User){continue}
+        chatPrint(Ply,teamColor(User:team()),User:name(),U_DefaultColor," "+Message+" ",Ply != Target ? teamColor(Target:team()) : U_YouColor,Ply != Target ? TargetName : "You") 
+    }
+    CachedData:remove(1)
+    
+    }
+}
+if(clk("schedulesay"))
+{
+    if(ScheduleSay:exists(1)){
+    local Data = ScheduleSay[1,table]
+    local User = Data["User",entity]
+    local Nick = Data["Nick",string]
+    local Content = Data["Content",string]
+    local IsDead = Data["Dead",number]
+    local Team = User:team()+1
+    impersonate(Team,IsDead,Nick,Content)
+    ScheduleSay:remove(1)
+    }
+}
+
+if(chatClk())
+{
+    local User = lastSpoke()
+    local LS = lastSaid()
+    local LSA = lastSaid():explode(" ")
+    LSA[1,string] = LSA[1,string]:sub(2)
+    if(LS[1]==PREFIX)
+    {
+        if(LSA[2,string]=="^")
+        {Target = User}else
+        {Target = findPlayerByName(LSA[2,string])}
+        switch(LSA[1,string])
+        {
+            case "explode",
+                local E = propSpawn("models/props_phx/misc/flakshell_big.mdl",Target:pos(),ang(),1)
+                E:setAlpha(0)
+                E:propFreeze(1)
+                E:propBreak()
+                ulxPrint(User,"exploded",Target)
+            break
+            
+            case "bring", 
+                Target:teleport(User:toWorld(vec(80,0,0)))
+                ulxPrint(User,"brought",Target)
+            break
+            
+            case "tp",
+                Target:teleport(User:aimPos())
+                ulxPrint(User,"teleported",Target)
+            break
+            
+            case "goto",
+                User:teleport(Target:toWorld(vec(80,0,0)))
+                ulxPrint(User,"teleported to",Target)
+            break
+            
+            case "launch",
+                Target:plyApplyForce(vec(0,0,10000))
+                ulxPrint(User,"Launched",Target)
+            break
+            
+            case "god",
+                Target:plyGod(1)
+                ulxPrint(User,"granted god mode upon",Target)
+            break
+            
+            case "ungod",
+                Target:plyGod(0)
+                ulxPrint(User,"revoked god mode from",Target)
+            break
+            
+            case "nick",
+                Nicknames[Target:id(),string] = LSA[3,string]
+            break
+            
+            default,
+            break
+        }
+    }elseif(Nicknames:exists(User:id()))
+    {
+        hideChat(1)
+        local Nick = Nicknames[User:id(),string]
+        local T = table(
+            "User"=User,
+            "Nick"=Nick,
+            "Content"=LS,
+            "Dead"= !User:isAlive()
+        )
+        ScheduleSay:pushTable(T)
+        timer("schedulesay",User:ping())
+        
+    }
+}
+
+#ulxPrint(players()[1,entity],"granted god mode upon",players()[2,entity])

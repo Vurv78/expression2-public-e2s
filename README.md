@@ -2,6 +2,7 @@
 A collection of my public libraries/expression2 files.
 Feel free to leave me suggestions for e2s and libraries, and to commit when you feel something is needed.
 https://discord.gg/RWrvmUf Link to my discord / Github webhook updates shown here
+(363590853140152321) My discord ID
 
 ## How to INSTALL Expression2s/Libraries:
 __Method 1 - Copy into GMOD:__

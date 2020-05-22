@@ -4,7 +4,7 @@
 # Source -- https://github.com/Vurv78/expression2-public-e2s
 if( first() ){
     SSent_Cache = table()
-    SSent_Types = table("gm_spawnsent ","gmod_spawnnpc ","gm_spawnvehicle ")
+    SSent_Types = table("gm_spawnsent ","gmod_spawnnpc ","gm_spawnvehicle ","gm_spawnswep ")
     function spawnSent(Class:string,Pos:vector,Ang:angle,Frozen,Timeout,Type)
     {
         concmd(SSent_Types[Type,string]+Class)
@@ -31,4 +31,3 @@ if( first() ){
         SSent_Cache:remove(Name)
     }
 }
-

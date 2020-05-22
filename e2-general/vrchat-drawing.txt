@@ -2,6 +2,8 @@
 @persist [Firing Ind ColorInd]:number
 @persist [CurCol]:vector
 @persist Spacing Delay Wep:string
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first()){
     runOnKeys(owner(),1,array("mouse_right","r","u"))
     

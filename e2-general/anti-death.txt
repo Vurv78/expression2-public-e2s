@@ -1,6 +1,8 @@
 @name antideath
 @persist [DP DV]:vector DA:angle O:entity DN
-
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+# Needs some sort of playercore to set angles, make yourself spawn and teleport yourself.
 if(first())
 {
     runOnTick(1)

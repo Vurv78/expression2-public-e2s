@@ -1,0 +1,53 @@
+@name Global Sound Library
+@persist GSL_Cache:table
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+
+if(first())
+{
+    local GSL_Cache = table()
+    function gsound(Pos:vector,Radius,Duration,Sound:string,VolumeMultiplier)
+    {
+        OnChip = 0
+        foreach(K,Ply:entity = players())
+        {
+            local PP = Ply:pos()
+            local Dist = PP:distance(Pos)
+            if(Dist>Radius){continue}
+            if(Dist>1000){
+                local C2 = Radius+Duration+K
+                local Dir = (Pos-PP):normalized()
+                holoCreate(C2,PP+Dir*100)
+                local Code = Ply:name()+"gsounds"+K
+                holoEntity(C2):soundPlay(Code,Duration,Sound)
+                holoParent(C2,Ply)
+                soundVolume(Code,abs(1-Dist/Radius)/5*VolumeMultiplier)
+                holoVisible(C2,players(),0)
+                timer(Code,Duration*1000)
+                GSL_Cache[Code,table] = table("HoloID"=C2)
+            }else{OnChip = 1}
+        }
+        if(OnChip)
+        {
+            local C2 = Radius+Duration
+            holoCreate(C2,Pos)
+            local Code = "gsounds"+C2
+            holoEntity(C2):soundPlay(Code,Duration,Sound)
+            holoVisible(C2,players(),0)
+            soundVolume(Code,1)
+            timer(Code,Duration*1000)
+            GSL_Cache[Code,table] = table("HoloID"=C2)
+        }
+    }
+    gsound(entity():pos(),10000,1,"hahayoufool.wav",0.5)
+}elseif(clkName())
+{
+    local Name = clkName()
+    if(GSL_Cache:exists(Name))
+    {
+        local T = GSL_Cache[Name,table]
+        holoDelete(T["HoloID",number])
+        soundStop(Name)
+        stoptimer(Name)
+    }
+}

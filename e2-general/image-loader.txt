@@ -1,9 +1,11 @@
 @name Image Loader
 @persist X Y Res NF CurPixel Arr:array Digi:wirelink
+# Author -- Vurv -- Discord = (363590853140152321)
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first())
 {
     #[--------------------------------------------------]#
-    #[         Image Loader by Vurv#9599                ]#
+    #[         Image Loader by Vurv#6248                ]#
     #[        Don't spam the http requests.             ]#
     #[ I will disable it for the public if that happens ]#
     #[--------------------------------------------------]#

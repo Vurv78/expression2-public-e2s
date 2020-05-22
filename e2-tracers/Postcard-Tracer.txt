@@ -1,6 +1,8 @@
 @name Postcard Tracer
 @persist X Y RS SD:vector F
 @inputs D:wirelink
+# Author -- Vurv 
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first()){
 runOnTick(1),RS=512-1,F=90 # GL Deciphering this garbage. It's not meant to be readable, it's fully meant just to be compact.
 D[1048574]=X=Y=0,D[1048569]=3,D[1048575]=1,D[1048572]=D[1048573]=RS,SD=sunDirection()}

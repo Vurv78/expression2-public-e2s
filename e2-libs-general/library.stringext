@@ -1,3 +1,6 @@
+@name Extended String Functions
+# Author - Vurv
+# Source - https://github.com/Vurv78/expression2-public-e2s/
 if(first())
 {
   function number string:findCharCount(Char:string,CaseSensitive)

@@ -1,0 +1,11 @@
+if(first())
+{
+  function number string:findCharCount(Char:string,CaseSensitive)
+  {
+      if(CaseSensitive){
+          return This:gmatch(Char):count()
+      }else{
+          return (This:gmatch(Char:lower()):count()+This:gmatch(Char:upper()):count())
+      }
+  }
+}

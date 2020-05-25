@@ -1,7 +1,7 @@
 @name VRChat Drawing
 @persist [Firing Ind ColorInd]:number
 @persist [CurCol]:vector
-@persist Spacing Delay Wep:string
+@persist Spacing Delay  OnlyWalls Wep:string
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first()){
@@ -10,8 +10,9 @@ if(first()){
     rangerPersist(1)
     rangerFilter(players())
     
-    Delay = 0.1 #in seconds how long it takes to spawn a holo
-    Spacing = 10 #space required between each holo to make another, 5 default
+    Delay = 0.1 # In seconds how long it takes to spawn a holo
+    Spacing = 10 # Space required between each holo to make another, 5 default
+    OnlyWalls = 1 # 1 or 0 whether to only shoot at walls and not draw in the air.
     Wep = "weapon_pistol"
 }
 
@@ -50,13 +51,17 @@ if(owner():weapon():type()==Wep){
                 if(!holoEntity(Ind)){holoCreate(Ind,vec(),vec(1),ang(),CurCol)}elseif(holoEntity(Ind):getColor() != CurCol){holoColor(Ind,CurCol)}
                 holoPos(Ind,owner():shootPos() + owner():eye():normalized()*50)
                 
-                Rng = rangerOffset(120,owner():shootPos(),owner():eye())
-                if(Rng:entity():isValid() | Rng:hitWorld()) {
-                    holoAng(Ind,Rng:hitNormal():toAngle())
-                    holoPos(Ind,Rng:pos())
+                if(OnlyWalls){
+                    holoAng(Ind,owner():aimNormal():toAngle())
+                    holoPos(Ind,owner():aimPos())
                 }else{
-                    holoPos(Ind,owner():shootPos() + owner():eye():normalized()*50)
-                    holoAng(Ind,owner():eye():toAngle())
+                    if(owner():aimEntity():isValid() | owner():eyeTrace():hitWorld()){
+                        holoAng(Ind,owner():aimNormal():toAngle())
+                        holoPos(Ind,owner():aimPos())
+                    }else{
+                        holoPos(Ind,owner():shootPos() + owner():eye():normalized()*50)
+                        holoAng(Ind,owner():eye():toAngle())
+                    }
                 }
             }
             

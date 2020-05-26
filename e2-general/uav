@@ -1,0 +1,152 @@
+@name UAV/Satellite
+@persist [Cooldown Health]:number
+@persist [Positions]:table
+@persist [Hitbox]:entity
+@persist [EGP]:wirelink
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+
+if(first()){
+
+    runOnKeys(players(),1)
+    Health=200
+
+    propSpawnUndo(0)
+
+    Cooldown = 1 #In seconds
+
+    Pos = randvec(0,2000):setZ(2000)
+    
+    entity():setPos(entity():toWorld(vec(0,0,-10)))
+    
+    holoCreate(1,Pos,vec(1),ang(90,90,0))
+    holoModel(1,"models/props_rooftop/satellitedish02.mdl")
+    
+    holoCreate(2,Pos+vec(50,0,20),vec(1,0.75,1),ang(0,90,0),vec(100,100,200))
+    holoModel(2,"models/hunter/blocks/cube1x2x025.mdl")
+    holoMaterial(2,"models/debug/debugwhite")
+    
+    holoCreate(3,Pos+vec(-50,0,20),vec(1,0.75,1),ang(0,90,0),vec(100,100,200))
+    holoModel(3,"models/hunter/blocks/cube1x2x025.mdl")
+    holoMaterial(3,"models/debug/debugwhite")
+    
+    holoCreate(4,Pos+vec(0,0,20),vec(0.5,0.3,0.5),ang(0,90,0),vec(100))
+    holoModel(4,"models/hunter/blocks/cube1x2x025.mdl")
+    holoMaterial(4,"models/debug/debugwhite")
+    
+    Hitbox = propSpawn("models/hunter/blocks/cube1x3x1.mdl",Pos+vec(0,0,25),ang(0,90,0),1)
+    Hitbox:setAlpha(0)
+    Hitbox:setMass(50000)
+    for(I=1,4){
+        holoParent(I,Hitbox)
+    }
+    
+    runOnDmg(1,Hitbox)
+    
+    rangerPersist(1)
+    rangerFilter(Hitbox)
+    #4x4
+    #2x2#"models/hunter/plates/plate2x2.mdl"
+    EGP = spawnEgp("models/hunter/plates/plate2x2.mdl",owner():toWorld(vec(10,0,0)),owner():angles(),1):wirelink()
+    #EGP = spawnEgpHud(owner():toWorld(vec(10,0,0)),owner():angles(),1):wirelink()
+    
+    EGP:egpCircle(70,vec2(Pos[1]/50+200,Pos[2]/50+200),vec2(5))
+    EGP:egpColor(70,vec(255))
+    
+    EGP:egpBox(71,vec2(Pos[1]/50+200+13,Pos[2]/50+200),vec2(15,10))
+    EGP:egpColor(71,vec(100,100,200))
+
+    EGP:egpBox(72,vec2(Pos[1]/50+200-13,Pos[2]/50+200),vec2(15,10))
+    EGP:egpColor(72,vec(100,100,200))
+}
+
+timer("find",Cooldown*1000)
+timer("beep",1000)
+timer("spin",200)
+
+if(clk("spin")){
+    Hitbox:setAng(Hitbox:angles():setYaw(Hitbox:angles():yaw()+1.5))
+}
+
+if(clk("beep")){
+    Hitbox:soundPlay(1,0.9,"Streetwar.d3_C17_13_beep")
+    soundVolume(1,100000)
+}
+
+if(changed(Hitbox:isValid()) & !Hitbox:isValid()){
+    
+    Effect = effect()
+    Effect:setRadius(50)
+    Effect:setOrigin(Hitbox:pos())
+    Effect:play("Explosion")
+        
+    Hitbox:propDelete()
+    holoDeleteAll()
+    timer("selfdestruct",100)
+
+}
+
+if(changed(players():count())){EGP:egpClear()}
+
+if(dmgClk()){
+
+    if(dmgType()=="Explosive"){
+        Dmg = dmgDamage()*5
+    }else{
+        Dmg = dmgDamage()
+    }
+    
+    if((Health-Dmg)>0){
+        Health-=Dmg
+        
+        Hitbox:soundPlay(2,1,"Weapon_StunStick.Melee_HitWorld")
+        
+        local Effect = effect()
+        Effect:setRadius(50)
+        Effect:setOrigin(Hitbox:pos())
+        Effect:play("TeslaZap")
+        
+    }else{
+        local Effect = effect()
+        Effect:setRadius(50)
+        Effect:setOrigin(Hitbox:pos())
+        Effect:play("Explosion")
+        
+        Hitbox:propDelete()
+        holoDeleteAll()
+        timer("selfdestruct",100)
+        printColor(vec(200),"UAV was destroyed by ",teamColor(dmgAttacker():team()),dmgAttacker())
+    }
+}
+
+if(clk("selfdestruct")){selfDestruct()}
+
+if(clk("find")){
+
+    foreach(Key,Ply:entity = players()){
+        
+        Rng = rangerOffset(10000000,Pos,(Ply:toWorld(Ply:boxCenter())-Pos))
+
+        if(Rng:entity()==Ply){
+            Positions[Ply:name(),vector] = Ply:pos()
+            
+            EGP:egpBox(Key,vec2(clamp(Ply:pos()[1]/50+200,0,500), clamp(Ply:pos()[2]/50+200,0,500) ),vec2(7.5))
+            EGP:egpColor(Key,teamColor(Ply:team()))
+            EGP:egpTextLayout(Key+20,Ply:name(),vec2(clamp(Ply:pos()[1]/50+200,0,500), clamp(Ply:pos()[2]/50+200,0,500) ),vec2(100,50))
+            EGP:egpFont(Key+20,"",12)
+            
+        }
+    
+    }
+
+}
+
+if(first() | changed(owner():pos())){
+    
+    if(1){
+        EGP:egpLine(73,vec2(clamp(owner():toWorld(vec(0,0,-2000))[1]/50+200,0,500),clamp(owner():toWorld(vec(0,0,-2000))[2]/50+200,0,500)),vec2(clamp(EGP:entity():toWorld(vec(0,0,0))[1]/50+200,0,500),clamp(EGP:entity():toWorld(vec(0,0,0))[2]/50+200,0,500)))
+    }else{
+        EGP:egpLine(73,vec2(clamp(owner():toWorld(vec(0,0,0))[1]/50+200,0,500),clamp(owner():toWorld(vec(0,0,0))[2]/50+200,0,500)),vec2(clamp(owner():toWorld(vec(2000,0,0))[1]/50+200,0,500),clamp(owner():toWorld(vec(2000,0,0))[2]/50+200,0,500)))
+    } 
+}

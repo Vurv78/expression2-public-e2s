@@ -1,0 +1,213 @@
+@name Texture Maker
+@persist [H S V Res]:number
+@persist [Prefix]:string
+@persist [VColor]:vector
+@persist [TempSave Colors]:table
+@persist [Ents]:array
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+
+if(first()){
+    
+    Res = 8 #Res*Res
+    Spacing = 9.15
+    
+    function vector findNearest(InputVec:vector,A:array){
+        ClosestVec = vec()
+        ClosestDist = 1000000
+        foreach(Key,Vec:vector = A){
+            Dist = Vec:distance(InputVec)
+            if(Dist<ClosestDist){ClosestVec = Vec,ClosestDist = Dist}
+        }
+        return ClosestVec
+    }
+    function entity findNearestENT(InputVec:vector,A:array){
+        ClosestVec = vec()
+        ClosestDist = 1000000
+        foreach(Key,ENT:entity = A){
+            Vec = ENT:pos()
+            Dist = Vec:distance(InputVec)
+            if(Dist<ClosestDist){ClosestVec = Vec,ClosestDist = Dist,ClosestENT = ENT}
+        }
+        return ClosestENT
+    }
+    
+    
+    Prefix = "/"
+        
+    runOnChat(1)
+    runOnTick(1)
+    
+    rangerPersist(1)
+    rangerFilter(array(entity(),owner()))
+    
+    entity():setAlpha(0)
+    
+    holoCreate(1,entity():pos(),vec(3,3,0.1),entity():angles(),vec(255))
+    holoParent(1,entity())
+    
+    holoCreate(2,entity():toWorld(vec(30,0,0)),vec(0.5,3,0.1),entity():angles(),vec(255))
+    holoParent(2,entity())
+    
+    holoDisableShading(1,1)
+    holoDisableShading(2,1)
+    
+    for(Y=1,Res){
+    
+        for(X=1,Res){
+            Colors["["+X+","+Y+"]",vector] = hsv2rgb((X+Y)*5,1,1)
+            holoCreate(X+(Y-1)*Res+2,entity():toWorld(vec(Y*Spacing-35,X*Spacing+30,0)),vec(0.75,0.75,0.1),entity():angles(),hsv2rgb((X+Y)*5,1,1))
+            holoParent(X+(Y-1)*Res+2,entity())
+            holoDisableShading(X+(Y-1)*Res+2,1)
+            Ents[X+(Y-1)*Res,entity] = holoEntity(X+(Y-1)*Res+2)
+        }
+    
+    }
+}
+
+if(owner():aimPos():distance(holoEntity(1):pos())<15){
+
+    if(owner():keyUse()){
+        
+        if(changed(owner():aimPos()))
+        {
+            holoEntity(1):soundPlay(1,0.1,"Player.WeaponSelected")
+            soundPitch(1,145)
+        }
+        S = abs(holoEntity(1):toLocal(owner():aimPos())[1])
+        V = abs(holoEntity(1):toLocal(owner():aimPos())[2])
+        VColor = hsv2rgb(H*16,S/22,V/22)
+        holoColor(1,VColor)
+     
+    }
+
+}elseif(owner():aimPos():distance(holoEntity(1):pos())<20){
+
+
+    if(owner():keyUse()){
+    
+        if(changed(owner():aimPos()))
+        {
+            holoEntity(2):soundPlay(2,0.1,"Player.WeaponSelected")
+            soundPitch(2,145)
+        }
+        
+        H = holoEntity(2):toLocal(owner():aimPos())[2]+20
+        VColor = hsv2rgb(H*16,S/24,V/24)
+        holoColor(1,VColor)
+        holoColor(2,hsv2rgb(H*16,1,1))
+    
+    }
+}elseif(owner():keyUse()){
+    local EntL = findNearestENT(owner():aimPos(),Ents)
+    Ind = holoIndex(EntL)
+    holoColor(Ind,VColor)
+}
+
+if(chatClk(owner())){
+    
+    LS = owner():lastSaid():lower():explode(" ")
+    
+    if(owner():lastSaid():explode("")[1,string]==Prefix){hideChat(1)}
+
+    switch(LS[1,string]){
+        
+        case Prefix+"clipboard",
+            printColor(VColor,VColor:toString())
+        break
+        
+        case Prefix+"perlin",
+            ArrMin = LS[2,string]:explode(",")
+            ArrMax = LS[3,string]:explode(",")
+            ColorMin = vec(ArrMin[1,number],ArrMin[2,number],ArrMin[3,number])
+            ColorMax = vec(ArrMax[1,number],ArrMax[2,number],ArrMax[3,number])
+        break
+        
+        case Prefix+"checker",
+            Mode = LS[2,string]:toNumber()
+            #Rand = randint(0,1)
+            
+            for(Y = 1,Res){
+                for(X=1+Y%2,Res,2){Colors[X+(Y-1)*Res,vector]=VColor*0,holoColor(X+(Y-1)*Res+2,VColor*0)}
+            }
+            
+        break
+        
+        case Prefix+"exportcb",
+            printColor(vec(100),"Set to Clipboard!!")
+            owner():setClipboardText(Colors:toString())
+        break
+        
+        case Prefix+"temp",
+            TempSave = Colors
+            print("Saved to cache")
+        break
+        case Prefix+"find",
+            local Pos = vec2(LS[2,string]:toNumber(),LS[3,string]:toNumber())
+            print(TempSave[Pos:toString(),vector])
+        break
+        
+        case Prefix+"export",
+            FileName = LS[2,string]
+            
+            fileWrite("textures/" + FileName:lower() + ".txt",vonEncode(Colors))
+        
+            printColor(vec(100),"Saved to ",vec(200),FileName)
+        break
+        
+        case Prefix+"set",
+            X = clamp(LS[2,string]:toNumber(),0,Res) Y = clamp(LS[3,string]:toNumber(),0,Res)
+            Colors[X+(Y-1)*Res,vector] = VColor
+            holoColor(X+(Y-1)*Res+2,VColor)
+        break
+        
+        case Prefix+"randall",
+            Min = LS[2,string]:toNumber()
+            Max = LS[3,string]:toNumber()
+            
+            for(Y=1,Res){
+                for(X=1,Res){Rand = randint(Min,Max),Colors[X+Y*Res,vector]=VColor*Rand,holoColor(X+(Y-1)*Res,VColor*Rand)}
+            }
+        break
+        
+        case Prefix+"setline",
+            Y = LS[2,string]:toNumber()
+            for(X=1,Res){
+                Colors[X+(Y-1)*Res,vector]=VColor
+                holoColor(X+(Y-1)*Res+2,VColor)
+            }
+        break
+        
+        case Prefix+"setall",
+            for(Y=1,Res){
+                for(X=1,Res){Colors[X+(Y-1)*Res,vector]=VColor,holoColor(X+(Y-1)*Res+2,VColor)}
+            }
+        break
+        
+        case Prefix+"gradienty",
+            for(Y=1,Res){
+                CustCol = VColor*((X+Y)/10)
+                for(X=1,Res){Colors[X+(Y-1)*Res,vector]=CustCol,holoColor(X+(Y-1)*Res+2,CustCol)}
+            }
+        break
+        
+        case Prefix+"gradientxy",
+            Severity = LS[2,string]:toNumber()
+            for(Y=1,Res){
+                CustCol = VColor*abs(X+Y/Severity)
+                for(X=1,Res){Colors[X+(Y-1)*Res,vector]=CustCol,holoColor(X+(Y-1)*Res+2,CustCol)}
+            }
+        break
+        
+        case Prefix+"hittex",
+            local Ranger = rangerOffset(10000,entity():pos(),-entity():up())
+            printColor(vec(100),"The E2 is currently placed on: ",vec(200,50,50),"\n"+Ranger:hitTexture():lower())
+        break
+        
+        default,
+            printColor(vec(255,0,0),"Error! Invalid command.")
+        break
+    }
+
+}

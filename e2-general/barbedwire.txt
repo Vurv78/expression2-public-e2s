@@ -1,0 +1,68 @@
+@name Barbed Wire
+@persist [Fences]:array
+@persist [Blocker]:entity
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s/new/master/e2-general
+# Requires -- Antcore (External E2 Extension)
+
+if(first()){
+
+    propSpawnUndo(0)
+    
+    entity():setPos(vec(0,0,-10))
+    entity():setAng(ang(0,40,0))
+    
+    holoCreate(1)
+    holoVisible(1,players(),0)
+    
+    Fences = array(
+        propSpawn("models/props_combine/railing_128.mdl",entity():toWorld(vec(0,0,20)),entity():angles(),1),
+        propSpawn("models/props_combine/railing_128.mdl",entity():toWorld(vec(0,0,60)),entity():toWorld(ang(0,180,0)),1),
+        propSpawn("models/props_combine/railing_128.mdl",entity():toWorld(vec(0,0,40)),entity():toWorld(ang(0,-180,0)),1),
+        propSpawn("models/props_forest/fence_trail_128.mdl",entity():toWorld(vec(0,0,0)),entity():toWorld(ang(0,90,0)),1)
+    
+    )
+    
+     foreach(Key,Fence:entity = Fences){
+        if(Key!=4){Fence:parentTo(Fences[4,entity])}
+        #noCollideAll(Fence,1)
+    }
+
+
+
+}
+
+timer("findply",100)
+
+if(clk("findply")){
+    
+    findByClass("player")
+    findSortByDistance(Fences[4,entity]:pos())
+    
+    Ply = find()
+
+}
+
+if(Ply){
+
+    if(Ply:isAlive() & Ply:shootPos():distance(Fences[4,entity]:pos())<100){
+        
+        holoPos(1,Ply:toWorld(vec(10,0,50)))
+        
+        local Effect = effect()
+        
+        if(Ply:vel():length()/100>0.7){
+            holoEntity(1):turretShoot(Ply:up(),1*Ply:vel():length()/100 *2,0,1,1,1)
+            Effect:setOrigin(Ply:shootPos())
+            Effect:setRadius(500)
+            Effect:setAngles(-Ply:vel():toAngle())
+            Effect:play("BloodImpact")
+            find():soundPlay(1,1,"physics/body/body_medium_impact_hard" + randint(1,5) + ".wav")
+        }#entity:turretShoot(vector direction,number damage,number spread,number force,number count,number tracer)
+    
+    }
+
+}
+
+

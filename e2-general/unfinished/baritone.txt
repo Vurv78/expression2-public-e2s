@@ -1,0 +1,94 @@
+@name Baritone
+@persist Movements:table
+@persist Moving
+@persist [Target]:vector
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s/new/master/e2-general/unfinished
+# Notes -- Not that old, my attempt at trying to make an automatic bot without any eye aiming functions. (Inspired by that weird mc client)
+
+if(first())
+{
+    Target = vec(0,0,1000)
+    
+    runOnLast(1)
+
+    function void move(Str:string,Bool:number)
+    {
+        Moving = Bool
+        Boolean = Bool ? "+" : "-"
+        concmd(Boolean + Str)
+        Movements[Str,number] = Bool
+    }
+    
+    function void setyaw(Degrees:number)
+    {
+        if(!Moving){
+            Yaw = owner():eyeAngles():yaw()
+            Diff = abs(Degrees-Yaw)
+            Dir = Degrees>Yaw? "left" : "right"
+
+            move(Dir,1)
+            print("diff",Diff*8)
+            
+            timer("stopmoving",Diff*8)
+        }
+    }
+    
+    function void stopmoving()
+    {
+        foreach(Key,Movement:number = Movements:values())
+        {
+            if(Movement)
+            {
+                move(Movements:keys()[Key,string],0)
+                Movements[Key,number] = 0
+            }
+        }
+    }
+    
+    function void entity:findnextpath()
+    {
+        Array = array()
+        MoveArray = array("jump","duck","")
+        Array:pushVector(entity():toWorld(vec(0,0,10)))
+        Array:pushVector(entity():toWorld(vec(0,0,-10)))
+        Array:pushVector(entity():toWorld(vec(0,10,0)))
+        Array:pushVector(entity():toWorld(vec(0,-10,0)))
+        Array:pushVector(entity():toWorld(vec(10,0,0)))
+        Array:pushVector(entity():toWorld(vec(-10,0,0)))
+        
+        Closest = 9999999999999999
+        ClosestVec = vec()
+        
+        foreach(Key,Vec:vector = Array)
+        {
+            Dist = Vec:distance(Target)
+            ClosestVec = Dist<Closest ? Vec : ClosestVec
+            Closest = Dist<Closest ? Dist : Closest
+        }
+        print(Closest,ClosestVec)
+    }
+
+}
+
+setyaw(20)
+
+if(clk("stopmoving"))
+{
+    stopmoving()
+    print(owner():eyeAngles():yaw())
+    stoptimer("stopmoving")
+}
+
+#[if(!Moving)
+{
+    owner():findnextpath()
+}
+]#
+
+
+if(last())
+{
+    stopmoving()
+}

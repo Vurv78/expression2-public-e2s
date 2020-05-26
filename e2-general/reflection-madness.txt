@@ -1,0 +1,39 @@
+@name Reflect
+@persist [Rangers Directions Props]:array
+@persist [RangerCount Thiccness]:number
+@persist [RopeExists]:table
+interval(300)
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+# Requires -- https://github.com/Vurv78/expression2-public-e2s/blob/master/e2-libs-general/library.hololine
+
+if(first()) {
+
+    #include "functions.hololine"
+    
+    rangerPersist(1)
+    rangerFilter(players())
+
+    RangerCount     =   100
+    Thiccness       =   0.05 #Thickness of lines
+    
+    function vector vector:reflect(HitNormal:vector){
+        return -(This:rotateAroundAxis(HitNormal,180))
+    }
+
+}
+    if(entity():vel():length()<20 && entity():angVelVector():length()<5){
+    Rangers[1,ranger] = rangerOffset(100000,entity():pos(),entity():up())
+    Directions[1,vector] = entity():up()
+    holoLine(1,entity():pos(),Rangers[1,ranger]:pos(),vec(255,255,255),vec2(Thiccness))
+    for(I = 1,RangerCount) {
+        Rangers[I+1,ranger] = rangerOffset(100000,Rangers[I,ranger]:pos(),Directions[I,vector] + Rangers[I,ranger]:hitNormal())
+        
+        Directions[I+1,vector] = (Directions[I,vector]:reflect(Rangers[I,ranger]:hitNormal()))
+        if(I!=1){
+            holoLine(I,Rangers[I-1,ranger]:pos(),Rangers[I,ranger]:pos(),I==RangerCount ? vec(0) : hsv2rgb((300/RangerCount)*I,1,1),vec2(Thiccness))
+        }
+    }
+    }
+

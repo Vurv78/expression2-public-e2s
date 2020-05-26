@@ -1,0 +1,164 @@
+@name Stacker v2
+@persist [Model Material Prefix Weapon]:string
+@persist [Active RotationIndex MoveIndex CanPlace Weld LocalPhys Moving]:number
+@persist [AimPos RotationMode MoveMode]:vector
+@persist [Prop]:entity
+@persist Color4:vector4
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+# Notes -- Pretty old
+
+interval(10)
+
+if(first()) {
+runOnChat(1)
+
+holoCreate(1)
+holoAlpha(1,180)
+
+Prefix = "/"
+#weapon_crowbar
+Weapon = "weapon_crowbar"
+
+#FUNCTIONS
+
+function void copy(){
+
+Model = owner():aimEntity():model()
+Color4 = owner():aimEntity():getColor4()
+Material = owner():aimEntity():getMaterial()
+Mass = owner():aimEntity():mass()
+
+}
+
+function number entity:said(I:number,S:string) {
+
+local Index = I
+local String = S
+local Ent = This
+
+if(chatClk(Ent)) {
+
+if(Ent:lastSaid():lower():explode(" "):string(Index) == Prefix + S) {return 1}else{return 0}
+
+}else{return 0}
+
+}
+
+
+} ########################## END OF FIRST ###############################################
+
+if(owner():said(1,"copy")) {hideChat(1),copy()}
+if(owner():said(1,"selfdestruct")) {hideChat(1),selfDestruct()}
+if(owner():said(1,"deleteprops")) {hideChat(1),propDeleteAll()}
+if(owner():said(1,"weld")) {hideChat(1),Weld = owner():lastSaid():explode(" "):string(2):toNumber()}
+
+if(changed(owner():weapon())){
+
+if(owner():weapon():type() == Weapon) {Active = 1}else{Active = 0}
+
+}
+
+
+############################# ACTIVE START ##########################################################
+if(Active) {
+
+if(changed(owner():aimPos())){
+AimPos = owner():aimPos()
+}
+
+if(changed(Model)){
+holoModel(1,Model)
+}
+
+
+if(changed(AimPos)){
+
+if(owner():keyAttack2()){
+holoPos(1,AimPos)
+holoAng(1,RotationMode:toAngle())
+
+Prop = noentity()
+}
+
+if(changed(owner():keyAttack1()) & owner():keyAttack1()){
+
+if(Model){
+
+if(CanPlace){
+local PropS = propSpawn(Model,holoEntity(1):pos(),holoEntity(1):angles(),1)
+PropS:setColor(Color4)
+PropS:setMaterial(Material)
+PropS:setMass(Mass)
+
+#ifdef entity:localizeThePhysics(number,vec)
+    if(LocalPhys) {PropS:localizeThePhysics(30,RotationMode)}
+#endif
+Prop = PropS
+if(Weld == 1) {weld(PropS,Prop)}
+
+}else{print("Cannot place in a wall!!")}
+
+}else{print("Must have a model!")}
+
+}
+}
+
+if(changed(owner():keyReload()) & owner():keyReload()) {
+if(RotationIndex < 7){
+RotationIndex += 1
+}else{RotationIndex = 0}
+
+}
+
+if(changed(owner():keyZoom()) & owner():keyZoom()) {
+if(MoveIndex < 7){
+MoveIndex += 1
+}else{MoveIndex = 0}
+}
+
+if(changed(RotationIndex) | changed(Prop)){
+RotationMode = select(RotationIndex,Prop:forward(),Prop:right(),-Prop:forward(),-Prop:right(),Prop:up(),-Prop:up())
+}
+
+if(changed(MoveIndex) | changed(Prop)){
+MoveMode = select(MoveIndex,Prop:toWorld(vec(Prop:boxSize():x()-Prop:boxSize():x()/100,0,0)),Prop:toWorld(vec(0,Prop:boxSize():y()-Prop:boxSize():y()/100,0)),Prop:toWorld(vec(-Prop:boxSize():x()+Prop:boxSize():x()/100,0,0)),Prop:toWorld(vec(0,-Prop:boxSize():y()+Prop:boxSize():x()/100,0)),Prop:toWorld(vec(0,0,Prop:boxSize():z()-Prop:boxSize():z()/100)),Prop:toWorld(vec(0,0,-Prop:boxSize():z()+Prop:boxSize():z()/100)))
+
+}
+
+if(changed(RotationMode)) {holoAng(1,RotationMode:toAngle())}
+
+if(!owner():keyAttack2()){
+
+if(changed(RotationMode) | changed(Prop) | changed(MoveMode) | changed(AimPos)) {
+holoPos(1,MoveMode)
+}
+
+}
+
+if(changed(owner():aimEntity()) & owner():aimEntity()) {Prop = owner():aimEntity()}
+
+if(changed(owner():keyUse()) & owner():keyUse() & owner():aimEntity() == Prop) {owner():soundPlay(2,1,"bms_objects/clickbeep/beep12.wav"),Prop:setPos(MoveMode),Prop:setAng(RotationMode:toAngle())}
+
+if(changed(Prop)) {
+
+#ifdef entity:hasLocalPhysics()
+if(Prop:hasLocalPhysics()) {LocalPhys = 1}else{LocalPhys = 0}
+#endif
+
+}
+
+if(changed(owner():keyPressed("X")) & owner():keyPressed("X")) {if(Prop) {Prop:soundPlay(4,1,"buttons/weapon_cant_buy.wav"),Prop:propDelete()}}
+
+if(changed(propCanCreate()) & !propCanCreate()) {holoColor(1,vec(255, 217, 0))}
+
+if(changed(CanPlace)){
+
+if(!CanPlace) {holoColor(1,vec(255,0,0))}else{holoColor(1,vec(0,255,0))}
+}
+if(rangerOffset(10,holoEntity(1):pos(),vec()):hit()) {CanPlace = 0}else{CanPlace = 1}
+
+}
+
+############################# ACTIVE END #############################################################

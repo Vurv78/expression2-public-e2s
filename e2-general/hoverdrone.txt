@@ -1,0 +1,394 @@
+@name Hover Drone by Vurv
+@persist [SpawnCooldown]:number
+@persist [Ind]:number
+@persist [Speed AngSpeed Pitch Yaw Roll Pull]:number
+@persist [Drone Driver Seat GrabENT]:entity
+@persist [Color_Main Color_Secondary]:vector
+@persist [ACTIVE Health Rainbow RInd RainbowSpeed Neon]:number
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+
+if(first()){
+    
+    #PHYSICS
+    Health = 500 #EPD Health
+    Speed = 0.5 #Speed Multiplier
+    AngSpeed = 0.5 #Angspeed, not a multiplier
+    Pull = 0.025*Speed #How quickly you stop moving when you arent pressing any controls
+    #PHYSICS
+
+    #COSMETICS    
+    Color_Main = vec(200,200,200) #Circle
+    Color_Secondary = vec(0) #Rings
+    
+    Rainbow = 0 #Rainbow Color Secondary!
+    RainbowSpeed = 0.5 #How long it takes to do a full rgb cycle in seconds
+    Neon = 0 #Neon On status and Color
+    #COSMETICS
+    
+    #ifdef propSpawnUndo(number)
+    #else
+        error("Propcore is not enabled on this server!")
+    #endif
+    #ifdef cameraCreate(number)
+    #else
+        error("Camera-core is not enabled on this server!")
+    #endif
+    runOnLast(1)
+    runOnTick(1)
+    runOnChat(1)
+    propSpawnUndo(0)
+    cameraRemoveAll()
+    rangerPersist(1)
+    cameraCreate(1)
+    entity():setPos(entity():toWorld(vec(0,0,-10)))
+    SpawnCooldown = 1
+
+    if(Rainbow){
+        Color_Secondary = vec()
+    }
+    
+    Seat = seatSpawn("models/props_phx/carseat3.mdl",entity():toWorld(vec(0,0,30)),entity():angles(),1)
+    
+    hint("Hover Drone by Vurv STEAM_0:0:95603716, Press \"O\" To spawn a drone!",5)
+    hint("EMERGENCY E2 RESET IF CAM STUCK: \"U\" KEY",5)
+}
+
+
+if(changed(Seat:driver())){
+
+    if(Seat:driver()){
+        
+        if(!Drone){
+            Seat:soundPlay(3,1,"Buttons.snd10")
+            
+            if(Seat:driver()==owner()){
+                hint("Hover Drone by Vurv STEAM_0:0:95603716, Press \"O\" To spawn a drone!",5)
+            }
+            
+            #Seat:ejectPod(Seat:toWorld(vec(0,0,100)))
+            
+        }
+        Driver = Seat:driver()
+        ACTIVE = 1
+    
+    }else{
+    
+        ACTIVE = 0
+    
+    }
+}
+
+if(Rainbow){
+
+    timer("rainbowtimer",1/(360/RainbowSpeed) )
+
+}
+
+if(Drone:isValid() && Rainbow && clk("rainbowtimer")){
+
+    RInd = RInd>360?0 : RInd+1
+
+    Color_Secondary = hsv2rgb(RInd,1,1)
+
+    for(I=5,8){
+        holoColor(I,Color_Secondary)
+    }
+
+}
+
+
+if(changed(Driver:keyPressed("U")) & Driver:keyPressed("U")){
+
+    ACTIVE=0
+    cameraToggle(1,0)
+    cameraToggle(1,0,Seat)
+    cameraRemoveAll()
+    Seat:ejectPod()
+
+}
+
+if(!Drone & SpawnCooldown & changed(owner():keyPressed("O")) & owner():keyPressed("O")){
+
+    Drone = propSpawn("models/hunter/blocks/cube075x075x025.mdl",owner():toWorld(vec(50,0,50)),ang(),1)
+    Drone:setMass(100)
+    Drone:setAlpha(1)
+    runOnDmg(1,Drone)
+    
+    cameraPos(1,Drone:toWorld(vec(15,0,-5)))
+    cameraAng(1,Drone:angles())
+    cameraParent(1,Drone)
+    
+    rangerFilter( array(entity(),Drone) )
+    
+    holoCreate(1,Drone:toWorld(vec(10,10,0)),vec(0.4))
+    
+    holoCreate(2,Drone:toWorld(vec(-10,-10,0)),vec(0.4))
+    
+    holoCreate(3,Drone:toWorld(vec(-10,10,0)),vec(0.4))
+    
+    holoCreate(4,Drone:toWorld(vec(10,-10,0)),vec(0.4))
+#=============================================================================
+#DRONE BY VURV STEAM_0:0:95603716 DRONE IS FREE FOR EDIT JUST DONT TAKE CREDIT
+#=============================================================================
+    for(I = 1,4){
+    
+        holoCreate(I+4,holoEntity(I):pos(),vec(2))
+        holoModel(I+4,"models/holograms/hq_torus.mdl")
+        holoAng(I+4,Drone:angles())
+        holoParent(I+4,Drone)
+        holoMaterial(I+4,"models/debug/debugwhite")
+        holoDisableShading(I+4,Neon)
+        holoColor(I+4,Color_Secondary)
+    
+        holoModel(I,"models/props/de_prodigy/fanoff.mdl")
+        holoAng(I,Drone:angles())
+        holoColor(I,vec(20))
+        holoParent(I,Drone)
+    
+    }
+    
+    holoCreate(9,Drone:pos(),vec(1.4))
+    holoModel(9,"models/holograms/hq_sphere.mdl")
+    holoParent(9,Drone)
+    holoColor(9,vec(30))
+    
+    holoCreate(10,Drone:toWorld(vec(0,0,7.5)),vec(0.25))
+    holoModel(10,"hq_icosphere")
+    holoColor(10,vec(255,0,0))
+    holoParent(10,Drone)
+    holoDisableShading(10,Neon)
+    
+    
+    
+    SpawnCooldown = 0
+    Drone:propFreeze(0)
+    timer("spawncooldown",10000)
+
+}
+
+if(clk("spawncooldown")){
+    
+    SpawnCooldown=1
+    print("Can spawn!")
+
+}
+
+if(changed(Drone:isValid()) & !Drone){
+
+    cameraToggle(1,0,Seat)
+    #Seat:ejectPod(Seat:toWorld(vec(100,0,100)))
+
+}
+
+if(dmgClk()){
+
+    
+    if(dmgVictim()==Drone){
+        
+        if(dmgType()=="Explosive"){
+        
+            Dmg = dmgDamage()*2
+        
+        }else{
+        
+            Dmg = dmgDamage()
+        
+        }
+    
+        Drone:soundPlay(2,1,"Missile.ShotDown")
+        soundPitch(2,100 - dmgDamage())
+        
+        local Effect = effect()
+        Effect:setOrigin(dmgPos())
+        Effect:setRadius(0.025*dmgDamage())
+        Effect:play("Sparks")
+        
+        if(Health-Dmg>0){
+            Health-=Dmg
+        }else{
+            
+            printColor( vec(100),"Drone was killed by " , teamColor(dmgAttacker():team()) , dmgAttacker():name() , vec(100) , " for " ,vec(255,0,0), Dmg , vec(100)," with " , vec(255,0,255), dmgAttacker():weapon() )
+            
+            Effect:setOrigin(Drone:pos())
+            Effect:setRadius(50)
+            Effect:play("Explosion")
+            
+            Drone:propBreak(),Drone:propDelete()
+        }
+    }
+
+
+}
+
+#=============================================================================
+#DRONE BY VURV STEAM_0:0:95603716 DRONE IS FREE FOR EDIT JUST DONT TAKE CREDIT
+#=============================================================================
+
+if(chatClk(owner())){
+
+    local Prefix = "/"
+
+    if(owner():lastSaid():sub(1,1)==Prefix){
+        
+        hideChat(1)        
+        
+    }
+    
+    if(owner():lastSaid():explode(" "):string(1):lower() == Prefix+"on"){
+    
+        cameraToggle(1,1)
+        ACTIVE = 1
+    
+    }
+    
+    if(owner():lastSaid():explode(" "):string(1):lower() == Prefix+"off"){
+    
+        cameraToggle(1,0)
+        ACTIVE = 0
+    
+    }
+
+
+}
+
+if(changed(ACTIVE)){
+
+    if(ACTIVE){
+
+        Drone:soundPlay(1,50000,"NPC_AttackHelicopter.Rotors")
+        soundPitch(1,176)
+        
+        Drone:propGravity(0)
+        
+        holoColor(10,vec(0,255,0))
+        cameraToggle(1,1,Seat)
+    
+    }else{
+        
+        Drone:propGravity(1)
+        soundStop(1)
+        
+        holoColor(10,vec(255,0,0))
+        cameraToggle(1,0,Seat)
+        
+    }
+
+}
+
+if(!first() & Drone & changed(Drone:isUnderWater())){
+
+    if(Drone:isUnderWater()){
+
+        Drone:soundPlay(4,3,"NPC_AttackHelicopter.CrashingAlarm1")
+        timer("underwater",3000)
+    }else{
+
+        stoptimer("underwater")
+    
+    }
+    
+    
+    
+}
+
+#=============================================================================
+#DRONE BY VURV STEAM_0:0:95603716 DRONE IS FREE FOR EDIT JUST DONT TAKE CREDIT
+#=============================================================================
+
+if(!first() & Drone & clk("underwater") & Drone:isUnderWater()){
+    
+    cameraToggle(1,0,Seat)
+    Seat:ejectPod()
+    Drone = noentity()
+    selfDestruct()
+}
+
+if(ACTIVE){
+
+    local M1 = Driver:keyAttack1()
+    local W = Driver:keyForward()
+    local A = Driver:keyLeft()
+    local S = Driver:keyBack()
+    local D = Driver:keyRight()
+    local SHIFT = Driver:keySprint()
+    local SPACE = Driver:keyJump()
+    
+    timer("setang",100)
+    
+    if(clk("setang")){
+        cameraAng(1, Drone:forward():toAngle() + Seat:driver():eyeAngles() )
+    }
+    
+    soundPitch(1,Drone:vel():length())
+    
+    HoverRng = rangerOffset(80,Drone:toWorld(vec(0,0,-1)),-Drone:up())
+
+    timer("spinanim",100)
+
+    if(clk("spinanim")){
+    
+        for(I=1,4){
+        
+            holoAng(I,holoEntity(I):toWorld(ang(0, 40 + Drone:vel():length()/10,0)))
+    
+        }
+    
+    }
+    
+    local RotAng = ang( Pitch,Yaw,Roll )
+    
+    Drone:applyTorque(( (Drone:toLocalAxis(rotationVector(quat( RotAng )/quat(Drone)))) *200-Drone:angVelVector()*20)*Drone:inertia())
+
+    if(SPACE) {
+    
+        Drone:applyForce( Drone:up()*Drone:mass()*4*Speed )
+    
+    }elseif(SHIFT){
+    
+        Drone:applyForce( -Drone:up()*Drone:mass()*4*Speed )
+    
+    }
+    
+    if(A){
+        Roll = clamp(Roll-0.25,-15,15)
+        Yaw+=AngSpeed
+    }elseif(D){
+        Roll = clamp(Roll+0.25,-15,15)
+        Yaw-=AngSpeed
+    }else{
+        Roll=-Roll/50
+    }
+    
+    if(changed(M1) & M1){
+        Drone:soundPlay(6,0.5,"buttons/combine_button" + randint(1,3) + ".wav")
+    }
+    
+    if(W){
+        
+        Pitch = clamp(Pitch+0.25,-20,20)
+        Drone:applyForce( Drone:forward()*Drone:mass()*4*Speed )
+    
+    }elseif(S){
+    
+        Pitch = clamp(Pitch-0.25,-20,20)
+        Drone:applyForce( -Drone:forward()*Drone:mass()*4*Speed )
+    
+    }else{
+        Pitch=-Pitch/50
+    }
+    
+    if(!W & !S & !SPACE & !SHIFT){
+        Drone:applyForce( -Drone:vel()*Drone:mass()*Pull )
+    }
+
+
+}
+
+if(last()){
+
+    cameraToggle(1,0,Seat)
+    cameraToggle(1,0)
+    cameraRemoveAll()
+
+}

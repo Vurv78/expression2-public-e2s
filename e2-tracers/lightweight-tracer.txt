@@ -422,7 +422,7 @@ if(DONE & Scr & changed(LoadedFiles) & LoadedFiles){
 while(!DONE && ((cpuUsage()*1000000<MaxCPU) & opcounter()<MaxOPS) ){
         
         Dir = vec(1,1-(X/Res)-0.5,1-(Y/Res)-0.5):rotate(entity():angles())
-        print(Dir)
+        #print(Dir)
         #+0.5
         #print(1-X/Res,1-Y/Res)
         Bounces = 0

@@ -1,8 +1,7 @@
 # expression2-public-e2s
 A collection of my public libraries/expression2 files.
 Feel free to leave me suggestions for e2s and libraries, and to commit when you feel something is needed.
-https://discord.gg/RWrvmUf Link to my discord / Github webhook updates shown here
-(363590853140152321) My discord ID as well
+(363590853140152321) Here's my discord ID
 
 Also, to note before looking into my libraries: (LIBRARIES NOT CHIPS)
 Libraries in e2 are very inefficient. They have a flat 20 ops penalty for calling any user function once and they don't have syntax highlighting. I would not recommend getting used to using libraries such as the math or stringext ones I or anyone else have made as they really only provide small functionality you can do yourself without a userfunction. But if you don't care about OPS / efficiency, then go for it.

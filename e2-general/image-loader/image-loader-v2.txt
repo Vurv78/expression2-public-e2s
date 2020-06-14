@@ -1,5 +1,6 @@
 @name Image Loader v2
 @persist Ind Res NF Img:string Digi:wirelink BlackNWhite OPSMax CPUMax
+# Source -- https://github.com/Vurv78/expression2-public-e2s/edit/master/e2-general/image-loader/image-loader-v2.txt
 if(first()){
     #[-------------------------------------------------------------]#
     #[ Image Loader v2 by Vurv on Discord(363590853140152321)      ]#

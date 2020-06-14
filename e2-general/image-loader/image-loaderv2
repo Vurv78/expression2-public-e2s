@@ -1,0 +1,51 @@
+@name Image Loader v2
+@persist Ind Res NF Img:string Digi:wirelink BlackNWhite OPSMax CPUMax
+if(first()){
+    #[-------------------------------------------------------------]#
+    #[ Image Loader v2 by Vurv on Discord(363590853140152321)      ]#
+    #[ Don't spam the http requests.                               ]#
+    #[ Changed to be more efficient, however can still be improved ]#
+    #[-------------------------------------------------------------]#
+    
+    # The other image loader is slower and now deprecated, but will still work with my API.
+    # Links given have to abide by pythonanywhere's site whitelist. (Otherwise it won't work.)
+    # the can be found here - https://www.pythonanywhere.com/whitelist/
+    # The API given auto-scales the image for you
+    # Can only do 1:1/Box ratio images for now.
+    
+    #------CONFIGS------#
+    Res = 512 # Integer, since resolution will always be a square. Max 512x.
+    CPUMax = 5000 # Don't turn this up too high it'll actually kill the server.
+    OPSMax = 10000
+    URL = "https://upload.wikimedia.org/wikipedia/en/thumb/b/b1/Black_Clover_vol_6.png/220px-Black_Clover_vol_6.png"
+    BlackNWhite = 0 # Make everything grayscale
+    #------CONFIGS------#
+    
+    runOnHTTP(1)
+    runOnTick(1)
+    httpRequest("https://vurv.pythonanywhere.com/digscreen?url="+URL+"&res="+Res+"&version=2")
+    NF=0
+    Ind = 1
+}
+if(httpClk()){
+    Img = httpData()
+    if(Img[1]=="e"){error("Errored, make sure you are using a whitelisted link.")}
+    NF=1
+}
+if(!Digi&entity():isWeldedTo():type()=="gmod_wire_digitalscreen"){
+    Digi = entity():isWeldedTo():wirelink()
+    Digi[1048572] = Res
+    Digi[1048573] = Res
+    Digi[1048569] = 3
+    Digi[1048574] = 1
+    Ind=1
+}elseif(!Digi){hint("Place the e2 on a digital screen!",5),selfDestruct()}
+while(NF & opcounter()<OPSMax & cpuUsage()*1000000<CPUMax & Digi){
+    local RGBINT = Img:sub(1,9)
+    Img = Img:sub(10) # Continuously frees used ImgData space 
+    Col = vec(RGBINT:sub(1,3):toNumber(),RGBINT:sub(4,6):toNumber(),RGBINT:sub(7,9):toNumber())
+    if(BlackNWhite){Col = vec(Col[1]+Col[2]+Col[3])/3} # Example of post processing
+    Digi[Ind-1] = rgb2digi(Col,3)
+    if(Ind/Res>Res){hint("Finished drawing image!",1),Img="",NF=0,selfDestruct()}
+    Ind++
+}

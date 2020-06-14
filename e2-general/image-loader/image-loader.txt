@@ -1,0 +1,61 @@
+@name Image Loader
+@persist X Y Res NF CurPixel Arr:array Digi:wirelink
+# Author -- Vurv -- Discord = (363590853140152321)
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+if(first())
+{
+    #[--------------------------------------------------]#
+    #[         Image Loader by Vurv#6248                ]#
+    #[        Don't spam the http requests.             ]#
+    #[ I will disable it for the public if that happens ]#
+    #[--------------------------------------------------]#
+    
+    #If the e2 says "tick quota exceeded", turn down the resolution.
+    #Max resolution with this is around 400 but varies by image.
+    #Usually works with discord links and imgur links.
+    #The API given auto-scales the image for you
+    
+    #------CONFIGS------#
+    Res = 400 #400x400 default
+    URL = "https://i.imgur.com/PzXvh88.png"
+    #------CONFIGS------#
+    
+    runOnHTTP(1)
+    runOnTick(1)
+    httpRequest("https://vurv.pythonanywhere.com/digscreen?url="+URL+"&res="+Res)
+    NF=0
+    CurPixel=0
+    X=Y=0
+}
+if(httpClk())
+{
+    local Dat = httpData()
+    if(Dat[1]=="t"&Dat[2]=="i"){error("Timeout, use a different link.")}
+    Dat = Dat:sub(2,Dat:length()-1)
+    Arr = Dat:explode(",")
+    NF=1
+}
+if(!Digi&entity():isWeldedTo():type()=="gmod_wire_digitalscreen"){
+    Digi = entity():isWeldedTo():wirelink()
+    Digi[1048572] = Res
+    Digi[1048573] = Res
+    Digi[1048569] = 3
+    Digi[1048574] = 1
+    X=Y=0
+}elseif(!Digi){hint("Place the e2 on a digital screen!",5),selfDestruct()}
+while(NF && opcounter()<10000 & cpuUsage()*1000000<5000 & Y < Res & Digi)
+{
+    local XGE = X>=(Res-1)
+    if(XGE)
+    {
+        if(Y>=(Res-1)){Y=0,NF=0,hint("Finished, Self Destructing!",5),selfDestruct()}else
+        {Y++}
+        X=0
+    }else{X++}
+    CurPixel++
+    local RGBINT = Arr[CurPixel,string]:toNumber()
+    local R = (RGBINT / 256 / 256 % 256)
+    local G = (RGBINT / 256 % 256)
+    local B = (RGBINT % 256)
+    Digi[X+Y*Res] = rgb2digi(Arr:exists(CurPixel) ? vec(R,G,B) : (CurPixel%2==0 ? vec(255,0,255) : vec(0)),3)
+}

@@ -18,7 +18,7 @@ if(first()){
     Res = 512 # Integer, since resolution will always be a square. Max 512x.
     CPUMax = 5000 # Don't turn this up too high it'll actually kill the server.
     OPSMax = 10000
-    URL = "https://upload.wikimedia.org/wikipedia/en/thumb/b/b1/Black_Clover_vol_6.png/220px-Black_Clover_vol_6.png"
+    URL = "https://i.imgur.com/WBvNDfq.jpg"
     BlackNWhite = 0 # Make everything grayscale
     #------CONFIGS------#
     

@@ -4,6 +4,10 @@
 @persist PREFIX:string
 # Author -- Vurv (https://vurv.pythonanywhere.com)
 # Source -- https://github.com/Vurv78/expression2-public-e2s
+#ifdef chatPrint(...)
+#else
+error("Your server does not have chatprint installed, which this needs to work.")
+#endif
 if(first())
 {
     U_YouColor = vec(74,0,131)

@@ -27,8 +27,7 @@ if(first()){
     httpRequest("https://vurv.pythonanywhere.com/digscreen?url="+URL+"&res="+Res+"&version=2")
     NF=0
     Ind = 1
-}
-if(httpClk()){
+}elseif(httpClk()){
     Img = httpData()
     if(Img[1]=="e"){error("Errored, make sure you are using a whitelisted link.")}
     NF=1

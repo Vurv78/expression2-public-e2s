@@ -3,6 +3,10 @@
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s
 # Needs some sort of playercore to set angles, make yourself spawn and teleport yourself.
+#ifdef entity:plySpawn()
+#else
+error("This server does not have plycore installed, which this needs to work.")
+#endif
 if(first())
 {
     runOnTick(1)

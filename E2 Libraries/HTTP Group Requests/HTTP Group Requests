@@ -1,10 +1,8 @@
-@name Load Avatars
-@persist Avatars:table
+@name HTTP Group Requests Library
 #include "httprequestqueue"
 # Author -- Vurv
-# Source -- https://github.com/Vurv78/expression2-public-e2s/edit/master/E2%20Libraries/HTTP%20Group%20Requests
+# Source -- 
 if( first() ){
-    Avatars = table()
     runOnHTTP(1)
     function number groupRequest(T:array){
         if(T:count()>5){return 0}
@@ -25,3 +23,6 @@ if( first() ){
         return 1
     }
 }
+
+
+

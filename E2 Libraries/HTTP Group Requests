@@ -2,7 +2,7 @@
 @persist Avatars:table
 #include "httprequestqueue"
 # Author -- Vurv
-# Source -- 
+# Source -- https://github.com/Vurv78/expression2-public-e2s/edit/master/E2%20Libraries/HTTP%20Group%20Requests
 if( first() ){
     Avatars = table()
     runOnHTTP(1)
@@ -23,17 +23,5 @@ if( first() ){
         }
         httpRequestQueue(BaseStr)
         return 1
-    }
-    KEY = "XXXXXXXXXXXXXXXXXX"
-    local Requesting = table()
-    foreach(K,Ply:entity = players()){
-        local S = format("http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=%s&steamids=%s",KEY,Ply:steamID64())
-        Requesting:pushString(S)
-    }
-    groupRequest(Requesting)
-}elseif(httpClk()){
-    foreach(K:number,Data:string = jsonDecode(httpData())){
-        local DataT = jsonDecode(Data)["response",table]["players",table][1,table]
-        Avatars[DataT["steamid",string],string] = DataT["avatarfull",string]
     }
 }

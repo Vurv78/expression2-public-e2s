@@ -1,0 +1,22 @@
+@name httpRequestQueue
+@persist HTTPRequestQueue_V1:array HTTPRequestQueue_TimeoutDelay
+# Author -- (Vurv#6428/363590853140152321)
+# Source -- https://github.com/Vurv78/expression2-public-e2s/new/master/e2-libs-general
+if( first() ){
+    HTTPRequestQueue_TimeoutDelay = 50 # In milliseconds, time in between processing the request queue.
+    function httpRequestQueue(S:string){
+        if(!httpCanRequest()){
+            HTTPRequestQueue_V1:pushString(S)
+            timer("httpReqQueue_Load",HTTPRequestQueue_TimeoutDelay)
+            return
+        }
+        httpRequest(S)
+    }
+}elseif(clk("httpReqQueue_Load")){
+    if(httpCanRequest()){
+        local Str = HTTPRequestQueue_V1[1,string]
+        HTTPRequestQueue_V1:remove(1)
+        httpRequest(Str)
+        if(HTTPRequestQueue_V1:count()>0){timer("httpReqQueue_Load",HTTPRequestQueue_TimeoutDelay)}
+    }else{timer("httpReqQueue_Load",HTTPRequestQueue_TimeoutDelay)}
+}

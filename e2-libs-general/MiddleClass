@@ -1,6 +1,8 @@
 @name middleclass
 @persist Classes:table
-
+# Source -- https://github.com/Vurv78/expression2-public-e2s/edit/master/e2-libs-general/library.middleclass
+# Author -- Vurv
+# Inspired by https://github.com/kikito/middleclass
 if(first()){
 
 function table class(S:string)

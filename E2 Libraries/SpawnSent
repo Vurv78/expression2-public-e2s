@@ -1,7 +1,7 @@
 @name spawnSent Library
 @persist [SSent_Cache SSent_Types SSent_SavedSents]:table
 # Author -- Vurv
-# Source -- 
+# Source -- https://github.com/Vurv78/expression2-public-e2s/blob/master/E2%20Libraries/SpawnSent
 # Modes:
 # 1 = spawn regular scripted ent, 2 = spawn npcs
 # 3 = spawn a vehicle, 4 = spawn a SWEP/weapon

@@ -1,10 +1,14 @@
 @name spawnSent Library
 @persist [SSent_Cache SSent_Types SSent_SavedSents]:table
 # Author -- Vurv
-# Source -- https://github.com/Vurv78/expression2-public-e2s
+# Source -- 
+# Modes:
+# 1 = spawn regular scripted ent, 2 = spawn npcs
+# 3 = spawn a vehicle, 4 = spawn a SWEP/weapon
+# 5 = spawn a prop, like propSpawn() but works for ragdolls too
 if( first() ){
     SSent_Cache = table()
-    SSent_Types = table("gm_spawnsent ","gmod_spawnnpc ","gm_spawnvehicle ","gm_spawnswep ")
+    SSent_Types = table("gm_spawnsent ","gmod_spawnnpc ","gm_spawnvehicle ","gm_spawnswep ","gm_spawn ")
     SSent_SavedSents = table()
     function spawnSent(Class:string,Pos:vector,Ang:angle,Frozen,Timeout,Type)
     {
@@ -18,6 +22,7 @@ if( first() ){
     {
         SSent_SavedSents:propDelete()
     }
+    spawnSent("models/props_c17/FurnitureMattress001a.mdl",entity():pos(),ang(),0,1,5) # Example on spawning regular props that e2 would fuck up.
 }elseif(clkName())
 {
     local Name = clkName()

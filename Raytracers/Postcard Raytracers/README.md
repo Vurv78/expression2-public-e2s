@@ -1,10 +1,10 @@
 # Postcard Raytracers
 
 ## Version 1
-Uses opcounter/cpu for performance checks.
-Phong Shading
-No Prop Colors
-No Sky Gradient
+Uses opcounter/cpu for performance checks.\n
+Phong Shading\n
+No Prop Colors\n
+No Sky Gradient\n
 Release Video: https://www.youtube.com/watch?v=sHSSBqBS0Tg
 627 Characters.
 

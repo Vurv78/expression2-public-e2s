@@ -1,6 +1,6 @@
 @persist X Y S A B T L:vector
 @inputs D:wirelink
-interval(1) if(first()){S=512,F=90,A=1048569,D[A+5]=X=Y=0
+interval(1) if(first()){S=512,A=1048569,D[A+5]=X=Y=0
 D[A]=3,B=D[A+6]=1,D[A+3]=D[A+4]=S,L=sunDirection(),T=99999}
 while(D&B&perf(30)){R=ranger(T,X/S-0.5,Y/S-0.5),E=R:entity(),H=R:hitNormal()
 N=(R:pos()-R:positionLeftSolid()):normalized()

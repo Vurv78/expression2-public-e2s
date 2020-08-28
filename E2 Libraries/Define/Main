@@ -1,0 +1,22 @@
+@name define on self
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+# How to use --
+# Look at the Example code provided here, and save this file somewhere in your expression2 files.
+#ifndef entity:remoteSetCode(string)
+    hint("You need remoteSetCode for this to work! Ask your server owner to enable the default remoteUploader extension!",5)
+    selfDestruct()
+#endif
+function definesInit(Code:string){
+    local LocFN = getCodeIncludes():keys()[1,string] # Cool way to get local file name
+    print("Initializing defines!")
+    local Defs = Code:gmatch("#defines (.-) (.-)\n")
+    Code = Code:replaceRE("#include%s*\""+LocFN+"\"","")
+    Code = Code:replaceRE("definesInit%(.*%)","")
+    foreach(K:number,D:array = Defs){
+        local Rep = D[1,string]
+        local RepTo = D[2,string]
+        Code = Code:replaceRE(format("\"%s\"",Rep),RepTo)
+    }
+    entity():remoteSetCode(Code)
+}

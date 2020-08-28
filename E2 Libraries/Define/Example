@@ -1,11 +1,12 @@
-#define whiletrue while(1)
-#define do {
-#define end }
-#define heloworld print("hello world!")
-#define vurv print("this is some really cool shit :D")
+#defines whiletrue while(1)
+#defines do {
+#defines end }
+#defines heloworld print("hello world!")
+#defines vurv print("this is some really cool shit :D")
 
 #include "defonself" # These will be removed post-loading
-definesInit(getCode()) # These will be removed post-loading the defines
+definesInit(getCode(),"define") # First argument NEEDS to be this code. There's no way for includes to get the main code.
+# Second argument should be the keyword used to #define stuff. do not include the hashtag since it'll always be a comment. 
 
 "vurv"
 "heloworld"

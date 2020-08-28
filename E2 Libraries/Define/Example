@@ -11,3 +11,11 @@ definesInit(getCode()) # These will be removed post-loading the defines
 "heloworld"
 
 "whiletrue" "do" "end"
+
+# Output --> 
+Initializing defines!
+this is some really cool shit :D
+hello world!
+(Throws error for quota from the while(1){} loop)
+# Output -->
+

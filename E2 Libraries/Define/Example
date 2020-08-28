@@ -1,0 +1,13 @@
+#defines whiletrue while(1)
+#defines do {
+#defines end }
+#defines heloworld print("hello world!")
+#defines vurv print("this is some really cool shit :D")
+
+#include "defonself" # These will be removed post-loading
+definesInit(getCode()) # These will be removed post-loading the defines
+
+"vurv"
+"heloworld"
+
+"whiletrue" "do" "end"

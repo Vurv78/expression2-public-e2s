@@ -10,7 +10,7 @@
 function definesInit(Code:string){
     local LocFN = getCodeIncludes():keys()[1,string] # Cool way to get local file name
     print("Initializing defines!")
-    local Defs = Code:gmatch("#defines (.-) (.-)\n")
+    local Defs = Code:gmatch("#define (.-) (.-)\n")
     Code = Code:replaceRE("#include%s*\""+LocFN+"\"","")
     Code = Code:replaceRE("definesInit%(.*%)","")
     foreach(K:number,D:array = Defs){

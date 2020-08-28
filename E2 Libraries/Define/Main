@@ -1,8 +1,8 @@
 @name define on self
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s
-# How to use --
-# Look at the Example code provided here, and save this file somewhere in your expression2 files.
+# Look at the Example code provided here https://github.com/Vurv78/expression2-public-e2s/blob/master/E2%20Libraries/Define/Example
+# and save this file somewhere in your expression2 files.
 #ifndef entity:remoteSetCode(string)
     hint("You need remoteSetCode for this to work! Ask your server owner to enable the default \"remoteupload\" extension!",5)
     selfDestruct()

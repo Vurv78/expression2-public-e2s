@@ -3,8 +3,11 @@
 # Source -- https://github.com/Vurv78/expression2-public-e2s
 # Look at the Example code provided here https://github.com/Vurv78/expression2-public-e2s/blob/master/E2%20Libraries/Define/Example
 # and save this file somewhere in your expression2 files.
+# Updated -- v1.1 ( Fixed definesInit not being removed sometimes and made it less picky )
+# Note that this chip doesn't work with stuff like type-based function calls.
+
 #ifndef entity:remoteSetCode(string)
-    hint("You need remoteSetCode for this to work! Ask your server owner to enable the default \"remoteupload\" extension!",5)
+    hint("You need remoteSetCode for this to work! Ask your server owner to enable the default remoteUploader extension!",5)
     selfDestruct()
 #endif
 function definesInit([Code Keyword]:string){
@@ -12,7 +15,7 @@ function definesInit([Code Keyword]:string){
     print("Initializing defines!")
     local Defs = Code:gmatch("#"+Keyword+" (.-) (.-)\n")
     Code = Code:replaceRE("#include%s*\""+LocFN+"\"","")
-    Code = Code:replaceRE("definesInit%(.*%)","")
+    Code = Code:replaceRE("definesInit%(%s*getCode%(%s*%).-%)","")
     foreach(K:number,D:array = Defs){
         local Rep = D[1,string]
         local RepTo = D[2,string]
@@ -20,3 +23,4 @@ function definesInit([Code Keyword]:string){
     }
     entity():remoteSetCode(Code)
 }
+

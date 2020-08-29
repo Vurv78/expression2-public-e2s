@@ -5,6 +5,7 @@
 # and save this file somewhere in your expression2 files.
 # Updated -- v1.1 ( Fixed definesInit not being removed sometimes and made it less picky )
 # Note that this chip doesn't work with stuff like type-based function calls.
+# Also note that this chip may run twice the first time around because e2's remoteSetCode doesn't stop the current instance, which kinda sucks
 
 #ifndef entity:remoteSetCode(string)
     hint("You need remoteSetCode for this to work! Ask your server owner to enable the default remoteUploader extension!",5)

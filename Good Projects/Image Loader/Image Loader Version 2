@@ -1,11 +1,10 @@
 @name Image Loader v2
 @persist Ind Res NF Img:string Digi:wirelink BlackNWhite OPSMax CPUMax
-# Source -- https://github.com/Vurv78/expression2-public-e2s/edit/master/e2-general/image-loader/image-loader-v2.txt
+# Source -- https://github.com/Vurv78/expression2-public-e2s
 if(first()){
     #[-------------------------------------------------------------]#
     #[ Image Loader v2 by Vurv on Discord(363590853140152321)      ]#
     #[ Don't spam the http requests.                               ]#
-    #[ Changed to be more efficient, however can still be improved ]#
     #[-------------------------------------------------------------]#
     
     # The other image loader is slower and now deprecated, but will still work with my API.
@@ -13,6 +12,7 @@ if(first()){
     # the can be found here - https://www.pythonanywhere.com/whitelist/
     # The API given auto-scales the image for you
     # Can only do 1:1/Box ratio images for now.
+    # PLS Use Image Loader v1 or v3, this is REAAALY bad. like realllly bad. I'm considering deleting it because of how inefficient it is.
     
     #------CONFIGS------#
     Res = 512 # Integer, since resolution will always be a square. Max 512x.

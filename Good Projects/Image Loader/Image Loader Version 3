@@ -14,7 +14,7 @@ if(first()){
     Res          = 128   # Width&Height as one integer
     CPUMax       = 4000  # 2k or higher
     OPSMax       = 10000 # ~10k
-    URL          = "https://upload.wikimedia.org/wikipedia/en/6/69/Black_Clover%2C_volume_1.jpg"
+    URL          = "https://i.ytimg.com/vi/O0PLdJZFnPU/mqdefault.jpg"
     BlackNWhite  = 0     # Grayscale Image
     Invert       = 1
     #------CONFIGS------#

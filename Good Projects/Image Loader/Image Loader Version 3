@@ -1,11 +1,12 @@
 @name Image Loader v3 by Vurv
 @persist Ind Res NF Pixels:table Digi:wirelink CPUMax OPSMax BlackNWhite Invert
 if(first()){
-    #[-------------------------------------------------------------]#
-    #[ Image Loader v3 by Vurv on Discord(363590853140152321)      ]#
-    #[ Don't spam the http requests.                               ]#
-    #[-------------------------------------------------------------]#
+    #[-----------------------------------------------------]#
+    #[ Image Loader by Vurv on Discord(363590853140152321) ]#
+    #[ Don't spam requests.                                ]#
+    #[-----------------------------------------------------]#
     
+    # This fits in a single discord msg!
     # Fastest Image Loader https://github.com/Vurv78/expression2-public-e2s
     # Links have to be on pythonanywhere's whitelist (https://www.pythonanywhere.com/whitelist)
     # The API given auto-scales the image for you to 1:1 ratio
@@ -16,7 +17,7 @@ if(first()){
     OPSMax       = 10000 # ~10k
     URL          = "https://i.ytimg.com/vi/O0PLdJZFnPU/mqdefault.jpg"
     BlackNWhite  = 0     # Grayscale Image
-    Invert       = 1
+    Invert       = 0
     #------CONFIGS------#
 
     runOnHTTP(1)
@@ -27,16 +28,14 @@ if(first()){
     local Img = httpData()
     if(Img[1]=="E"){error("Errored, make sure you are using a whitelisted link.")}
     Pixels = Img:gmatch("(%d%d%d)(%d%d%d)(%d%d%d)")
-    Img = "" NF=1
+    Img="" NF=1
 }
-
 if(!Digi&entity():isWeldedTo():type()=="gmod_wire_digitalscreen"){
     Digi = entity():isWeldedTo():wirelink()
     local A = 1048569
     Digi[A]=3 Digi[A+3]=Digi[A+4]=Res Digi[A+5]=1 Ind=0
 }elseif(!Digi){hint("Place the e2 on a digital screen!",5),selfDestruct()}
-
-while(NF & opcounter()<OPSMax & cpuUsage()*1000000<CPUMax & Digi){
+while(NF&Digi&opcounter()<OPSMax&cpuUsage()*1000000<CPUMax){
     local Pix = Pixels[Ind+1,array]
     local Col = vec(Pix[1,string]:toNumber(),Pix[2,string]:toNumber(),Pix[3,string]:toNumber())
     if(BlackNWhite){Col = vec(Col[1]+Col[2]+Col[3])/3}

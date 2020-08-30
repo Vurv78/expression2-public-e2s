@@ -1,4 +1,4 @@
-# E2 by Vurv, public on https://github.com/Vurv78/expression2-public-e2s/new/master/e2-libs-general
+# E2 by Vurv, public on https://github.com/Vurv78/expression2-public-e2s
 # Adds rudimentary "hooks" that imitate how lua hooks work.
 # Basically, just restricts something like a runOnTick(1) to only execute one given function.
 

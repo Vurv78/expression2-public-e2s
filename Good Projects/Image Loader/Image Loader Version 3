@@ -1,0 +1,47 @@
+@name Image Loader v3 by Vurv
+@persist Ind Res NF Pixels:table Digi:wirelink CPUMax OPSMax BlackNWhite Invert
+if(first()){
+    #[-------------------------------------------------------------]#
+    #[ Image Loader v3 by Vurv on Discord(363590853140152321)      ]#
+    #[ Don't spam the http requests.                               ]#
+    #[-------------------------------------------------------------]#
+    
+    # Fastest Image Loader https://github.com/Vurv78/expression2-public-e2s
+    # Links have to be on pythonanywhere's whitelist (https://www.pythonanywhere.com/whitelist)
+    # The API given auto-scales the image for you to 1:1 ratio
+    
+    #------CONFIGS------#
+    Res          = 128   # Width&Height as one integer
+    CPUMax       = 4000  # 2k or higher
+    OPSMax       = 10000 # ~10k
+    URL          = "https://upload.wikimedia.org/wikipedia/en/6/69/Black_Clover%2C_volume_1.jpg"
+    BlackNWhite  = 0     # Grayscale Image
+    Invert       = 1
+    #------CONFIGS------#
+
+    runOnHTTP(1)
+    runOnTick(1)
+    httpRequest("https://vurv.pythonanywhere.com/digscreen?url="+URL+"&res="+Res+"&version=2")
+    NF=Ind=0
+}elseif(httpClk()){
+    local Img = httpData()
+    if(Img[1]=="E"){error("Errored, make sure you are using a whitelisted link.")}
+    Pixels = Img:gmatch("(%d%d%d)(%d%d%d)(%d%d%d)")
+    Img = "" NF=1
+}
+
+if(!Digi&entity():isWeldedTo():type()=="gmod_wire_digitalscreen"){
+    Digi = entity():isWeldedTo():wirelink()
+    local A = 1048569
+    Digi[A]=3 Digi[A+3]=Digi[A+4]=Res Digi[A+5]=1 Ind=0
+}elseif(!Digi){hint("Place the e2 on a digital screen!",5),selfDestruct()}
+
+while(NF & opcounter()<OPSMax & cpuUsage()*1000000<CPUMax & Digi){
+    local Pix = Pixels[Ind+1,array]
+    local Col = vec(Pix[1,string]:toNumber(),Pix[2,string]:toNumber(),Pix[3,string]:toNumber())
+    if(BlackNWhite){Col = vec(Col[1]+Col[2]+Col[3])/3}
+    if(Invert){Col=255-Col}
+    Digi[Ind] = rgb2digi(Col,3)
+    if(Ind/Res>Res){hint("Finished drawing image!",1),Pixels=table(),NF=0,selfDestruct()}
+    Ind++
+}

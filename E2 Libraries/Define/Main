@@ -11,7 +11,7 @@
     hint("You need remoteSetCode for this to work! Ask your server owner to enable the default remoteUploader extension!",5)
     selfDestruct()
 #endif
-function string string:patternSafe(){
+function string string:patternSafe(){ # Might not be necessary if you replace replaceRE with replace()
     local Kw = "%.*-+()^$?":explode("")
     local S = This
     foreach(K,V:string = Kw){

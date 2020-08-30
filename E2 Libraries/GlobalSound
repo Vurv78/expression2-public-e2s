@@ -1,6 +1,7 @@
 @name Global Sound Library
 @persist GSL_Cache:table
 # Author -- Vurv
+# Cheap Global Sound Library (GSL) that is pretty nice but could definitely be better if you went for a more costly method that ran on tick.
 # Source -- https://github.com/Vurv78/expression2-public-e2s
 
 if(first())

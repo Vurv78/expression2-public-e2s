@@ -133,7 +133,6 @@ function table:write(Pixels:table){
 
 function table:writePixel(V:vector){
     assert(This["png",number],"This is not a png object.")
-    print("writing pixel!")
     This:write(table(V[1],V[2],V[3]))
 }
 
@@ -182,7 +181,8 @@ function table createPNG(Width, Height){
     State["deflateFilled",number] = 0
     return State
 }
-# Example of how to use
+
+# Example of how to use the library
 P = createPNG(2,2)
 P:writePixel(vec(255,0,0))
 P:writePixel(vec(0,255,0))

@@ -136,9 +136,14 @@ function table:writePixel(V:vector){
     print("writing pixel!")
     This:write(table(V[1],V[2],V[3]))
 }
+
 function number table:done(){
     assert(This["png",number],"This is not a png object.")
     return This["done",number]
+}
+
+function void table:export(FilePath:string){
+    fileWrite(FilePath,This["output",table]:concat(""))
 }
 
 function table createPNG(Width, Height){
@@ -177,12 +182,11 @@ function table createPNG(Width, Height){
     State["deflateFilled",number] = 0
     return State
 }
-
-
+# Example of how to use
 P = createPNG(2,2)
 P:writePixel(vec(255,0,0))
 P:writePixel(vec(0,255,0))
 P:writePixel(vec(0,0,255))
 P:writePixel(vec(255,255,255))
 print(P:done())
-fileWrite("test.txt",P["output",table]:concat(""))
+P:export("test.txt")

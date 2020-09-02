@@ -16,7 +16,17 @@ P:export("test.txt") # Will put the image in data/e2files/test.txt rename it to 
 
 ### Changelogs:
 
-## Version 1.1
+## Version 1.2 -- RGBA Images
+```golo
+# Added createPNG(ResX,ResY,ColorType) (ColorType can be "rgb" or "rgba"), it is optional however.
+# Added writeVector4(Vector4RGB)
+# Added writeVector4Fast(Vector4RGB)
+# Added writeRGBA(R,G,B,A)
+# Added writeRGBAFast(R,G,B,A)
+# Changed Updated some functions to be more efficient in rounding by using lua methods (writeVector)
+```
+
+## Version 1.1 -- Bug Fixes + writeRGB
 ```golo
 # Changed Renamed writePixel to writeVector
 # Added writeVectorFast(VectorRGB)

@@ -3,7 +3,7 @@
 # Based off of -- https://github.com/wyozi/lua-pngencoder
 # Source -- https://github.com/Vurv78/expression2-public-e2s/
 # Author -- Vurv (based off of wyozi's)
-# Version -- 1.1
+# Version -- 1.2
 
 DEFLATE_MAX_BLOCK_SIZE = 65535
 
@@ -132,10 +132,19 @@ function table:write(Pixels:table){
     }
 }
 
-function table createPNG(Width, Height){
+function table createPNG(Width, Height,ColorMode:string){
+    # colormode "rgb" = 1
+    # colormode "rgba" = 2
+    local CM = ColorMode:lower()
+    local Type = CM=="rgb" ? 1 : CM=="rgba" ? 2 : 0
+    assert(Type!=0,"PNG Created with invalid colormode, please give \"rgb\" or \"rgba\"")
     local BytesPerPixel = 3
     local ColorType = 2
-    local State = table("width" = Width, "height" = Height, "done" = 0, "output" = table() , "png" = 1)
+    if(Type==2){
+        BytesPerPixel = 4 # rgba
+        ColorType = 6 # rgba
+    }
+    local State = table("width" = Width, "height" = Height, "done" = 0, "output" = table() , "png" = 1 , "type" = Type)
     State["lineSize",number] = Width * BytesPerPixel + 1
     State["uncompRemain",number] = State["lineSize",number] * Height
     local NumBlocks = ceil(State["uncompRemain",number] / DEFLATE_MAX_BLOCK_SIZE)
@@ -169,26 +178,60 @@ function table createPNG(Width, Height){
     return State
 }
 
+function table createPNG(Width,Height){
+    return createPNG(Width,Height,"rgb")
+}
+
 # Library Funcs
 
 function table:writeVector(V:vector){ # Rounds the numbers in case there are decimals since decimals will break the image.
-    assert(This["png",number],"This is not a png object.")
-    This:write(table(round(V[1]),round(V[2]),round(V[3])))
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=1){error("This png is not in RGB format.")}
+    V = round(V)
+    This:write(table(V[1],V[2],V[3]))
 }
 
 function table:writeVectorFast(V:vector){ # Writes a pixel without trying to round it or anything, assuming it is already rounded and won't break the PNG.
-    assert(This["png",number],"This is not a png object.")
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=1){error("This png is not in RGB format.")}
     This:write(table(V[1],V[2],V[3]))
 }
 
 function table:writeRGB(R,G,B){ # Rounds the numbers in case there are decimals since decimals will break the image.
-    assert(This["png",number],"This is not a png object.")
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=1){error("This png is not in RGB format.")}
     This:write(table(round(R),round(G),round(B)))
 }
 
 function table:writeRGBFast(R,G,B){ # Writes a pixel without trying to round it or anything, assuming it is already rounded and won't break the PNG.
-    assert(This["png",number],"This is not a png object.")
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=1){error("This png is not in RGB format.")}
     This:write(table(R,G,B))
+}
+
+function table:writeVector4(V:vector4){ # Rounds the numbers in case there are decimals since decimals will break the image.
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=2){error("This png is not in RGBA format.")}
+    V = round(V)
+    This:write( table( round(V[1]),round(V[2]),round(V[3]),round(V[4]) ) )
+}
+
+function table:writeVector4Fast(V:vector4){ # Writes a pixel without trying to round it or anything, assuming it is already rounded and won't break the PNG.
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=2){error("This png is not in RGBA format.")}
+    This:write(table(V[1],V[2],V[3],V[4]))
+}
+
+function table:writeRGBA(R,G,B,A){ # Rounds the numbers in case there are decimals since decimals will break the image.
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=2){error("This png is not in RGBA format.")}
+    This:write( table(round(R),round(G),round(B),round(A)) )
+}
+
+function table:writeRGBAFast(R,G,B,A){ # Writes a pixel without trying to round it or anything, assuming it is already rounded and won't break the PNG.
+    if(!This["png",number]){error("This is not a png object.")}
+    if(This["type",number]!=2){error("This png is not in RGBA format.")}
+    This:write(table(R,G,B,A))
 }
 
 function table table:output(){
@@ -208,10 +251,10 @@ function void table:export(FilePath:string){
 # Library Funcs
 
 # Example of how to use the library
-P = createPNG(2,2)
-P:writePixel(vec(255,0,0))
-P:writePixel(vec(0,255,0))
-P:writePixel(vec(0,0,255))
-P:writePixel(vec(255,255,255))
+P = createPNG(2,2,"rgba")
+P:writeRGBA(255,0,0,125)
+P:writeVector4(vec4(0,255,0,125))
+P:writeVector4(vec4(0,0,255,125))
+P:writeVector4(vec4(255,255,255,255))
 print(P:done())
 P:export("test.txt")

@@ -17,13 +17,13 @@ P:export("test.txt") # Will put the image in data/e2files/test.txt rename it to 
 ### Changelogs:
 
 ## Version 1.1
-~ Renamed writePixel to writeVector
-+ writeVectorFast(VectorRGB)
-+ writeRGB(R,G,B)
-+ writeRGBFast(R,G,B)
-~ Updated writePixel/Vector to round numbers given as not to break the image
-+ Png:export(FilePath)
-+ Png:output()
+Changed Renamed writePixel to writeVector
+Added writeVectorFast(VectorRGB)
+Added writeRGB(R,G,B)
+Added writeRGBFast(R,G,B)
+Changed Updated writePixel/Vector to round numbers given as not to break the image
+Added Png:export(FilePath)
+Added Png:output()
 
 NOTE:
 Only use writeVectorFast/writeRGBFast if you know your digits are rounded so they won't break the image.

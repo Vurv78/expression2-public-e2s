@@ -1,4 +1,4 @@
-# Repeaterlib Documentation
+# Repeaterlib by Fasteroid
 ## Docs Created with e2tinytokenizer
 More @https://github.com/Vurv78/expression2-public-e2s
 

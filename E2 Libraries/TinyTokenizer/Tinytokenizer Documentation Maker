@@ -1,9 +1,10 @@
 @name e2docgenerator2 (e2tinytokenizer)
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s/
+# Version -- 1
 # A documentation maker I went way too far on. I first intended for it to be pretty simple and allow for custom descriptions
 # but I just felt like making a tokenizer since you really can't do much with gmatch
-# just #include this file, and use the function e2docgenerate(S,S) with first argument as the header, second as code.
+# just #include this file, and use the func e2docgenerate(S,S) with first argument as the header, second as code.
 
 if(first()){
     function number string:alphabeticallyFirst(S:string){ # Pretty sure this actually returns alphabetically last but too lazy to change bubble sort garbage
@@ -112,5 +113,5 @@ if(first()){
         print(format("Finished generating e2 docs and saved to e2docs/%s.txt",FilePath))
     }
     # make some documentation of this >:)
-    e2docgenerate("#Documentation of its own code.\n Yes, this was made with the chip\n",getCode())
+    e2docgenerate("# TinyTokenizer/E2docgenerator documentation.\nYes, this was made with the chip\nThis gives a string of documentation that is sorted by name of function type returned and hopefully will have some extra stuff in other versions.\nNote that this can still catch comments and strings.\n",getCode())
 }

@@ -1,5 +1,7 @@
-#Documentation of its own code.
- Yes, this was made with the chip
+# TinyTokenizer/E2docgenerator documentation.
+Yes, this was made with the chip
+This gives a string of documentation that is sorted by name of function type returned and hopefully will have some extra stuff in other versions.
+Note that this can still catch comments and strings.
 
 ## Docs Created with e2tinytokenizer
 More @https://github.com/Vurv78/expression2-public-e2s

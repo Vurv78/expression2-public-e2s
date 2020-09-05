@@ -1,41 +1,28 @@
-### putBigUint32(Val,Tbl:table,Index)
-Returns void
-### table:writeBytes(Data:table, Index, Len)
-Returns void
-### table:writeBytes(Data:table,Index)
-Returns void
-### table:writeBytes(Data:table)
-Returns void
-### table:adler32(Data:table , Index, Len)
-Returns void
-### table:crc32(Data:table, Index, Len)
-Returns void
-### table:write(Pixels:table)
-Returns void
-### createPNG(Width, Height,ColorMode:string)
-Returns table
-### createPNG(Width,Height)
-Returns table
-### table:writeVector(V:vector)
-Returns void
-### table:writeVectorFast(V:vector)
-Returns void
-### table:writeRGB(R,G,B)
-Returns void
-### table:writeRGBFast(R,G,B)
-Returns void
-### table:writeVector4(V:vector4)
-Returns void
-### table:writeVector4Fast(V:vector4)
-Returns void
-### table:writeRGBA(R,G,B,A)
-Returns void
-### table:writeRGBAFast(R,G,B,A)
-Returns void
-### table:output()
-Returns table
-### table:done()
+# Documentation of own code
+
+## Docs Created with e2tinytokenizer
+More @https://github.com/Vurv78/expression2-public-e2s
+
+## Functions that return **array**
+
+### array:sortAlphabetical()
+Returns array
+### string:sfind(P:string,N)
+Returns array
+### getFunctionData(Str:string)
+Returns array
+
+## Functions that return **number**
+
+### string:alphabeticallyFirst(S:string)
 Returns number
-### table:export(FilePath:string)
+
+## Functions that return **table**
+
+### getArgData(S:string)
+Returns table
+
+## Functions that return **void**
+
+### e2docgenerate([Header Code]:string)
 Returns void
-Docs Created with e2tinytokenizer

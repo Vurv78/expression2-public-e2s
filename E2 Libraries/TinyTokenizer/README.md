@@ -36,6 +36,11 @@ More @https://github.com/Vurv78/expression2-public-e2s
 
 ## Changelogs:
 
+Version 1.2
+```golo
+# Added wire icons
+```
+
 Version 1.1
 ```golo
 # Added descriptions. Put ### and your description of the function to describe it!

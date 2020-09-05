@@ -1,4 +1,15 @@
-# TinyTokenizer/E2docgenerator documentation.
+# TinyTokenizer
+
+## How to use
+
+```golo
+#include "filepathtotinytokenizer"
+e2docgenerate("# TinyTokenizer",getCode()) # -- > Will be saved to e2docs/hashofe2chip.txt
+```
+
+## No more auto-generating docs for this until I make it string /comment proof cause it does not like reading itself
+
+Here's what you'd get though. (I love returning func)
 Yes, this was made with the chip
 This gives a string of documentation that is sorted by name of function type returned and hopefully will have some extra stuff in other versions.
 Note that this can still catch comments and strings.
@@ -8,24 +19,26 @@ More @https://github.com/Vurv78/expression2-public-e2s
 
 ## Functions that return **array**
 
-### array:sortAlphabetical()
-Returns array
-### string:sfind(P:string,N)
-Returns array
-### getFunctionData(Str:string)
-Returns array
+
+## Functions that return **func**
+
 
 ## Functions that return **number**
 
-### string:alphabeticallyFirst(S:string)
-Returns number
 
 ## Functions that return **table**
 
-### getArgData(S:string)
-Returns table
 
 ## Functions that return **void**
 
-### e2docgenerate([Header Code]:string)
-Returns void
+
+
+
+## Changelogs:
+
+Version 1.1
+```golo
+# Added descriptions. Put ### and your description of the function to describe it!
+```
+
+Version 1.0 Created This

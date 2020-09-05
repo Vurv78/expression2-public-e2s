@@ -4,5 +4,5 @@ Returns array
 Returns array
 ### getArgData:S:string()
 Returns table
-### :e2docgenerate(Code:string)
-Returns 
+### e2docgenerate(Code:string)
+Returns nothing.

@@ -1,0 +1,116 @@
+@name e2docgenerator2 (e2tinytokenizer)
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s/
+# A documentation maker I went way too far on. I first intended for it to be pretty simple and allow for custom descriptions
+# but I just felt like making a tokenizer since you really can't do much with gmatch
+# just #include this file, and use the function e2docgenerate(S,S) with first argument as the header, second as code.
+
+if(first()){
+    function number string:alphabeticallyFirst(S:string){ # Pretty sure this actually returns alphabetically last but too lazy to change bubble sort garbage
+        local Min = min(S:length(),This:length())
+        local Byte1 = 0
+        local Byte2 = 0
+        for(I=1,Min){
+            Byte1 = toByte(This,I)
+            Byte2 = toByte(S,I)
+            if(Byte1==Byte2){continue}else{return Byte1>Byte2}    
+        }
+        return 0
+    }
+    function array array:sortAlphabetical(){
+        local Arr = This:clone()
+        foreach(K,Type:string = This){ # Bubble sort because we *shouldn't* have that many types to deal with
+            foreach(K2,Type2:string = This){
+                local T = Arr[K2,string]
+                if(Arr[K2,string]:alphabeticallyFirst(Arr[K2+1,string])){Arr[K2,string] = Arr[K2+1,string],Arr[K2+1,string] = T}
+            }
+        }
+        return Arr
+    }
+    function array string:sfind(P:string,N){ # Returns properly what string.find would return in Glua. (Fuck wire's findRE only returning start index) :P
+        local Start = This:findRE(P,N)
+        local Str = This:matchFirst(P,N)
+        local End = Start+Str:length()
+        return array(Start,End,Str)
+    }
+    function array getFunctionData(Str:string){
+        # Return (returntype,meta,name,args)
+        # entity print()
+        Match = Str:match("(%w+)%s+(%w+)%((.-)%)")
+        if(Match:count()){
+            return array(Match[1,string],"",Match[2,string],Match[3,string])
+        }
+        # entity entity:print()
+        Match = Str:match("(%w+)%s+(%w+):(%w+)%((.-)%)")
+        if(Match:count()){
+            return Match
+        }
+        # _ table:print()
+        Match = Str:match("(%w+)%s*:(%w+)%((.-)%)")
+        if(Match:count()){
+            return array("void",Match[1,string],Match[2,string],Match[3,string])
+        }
+        # _ print()
+        Match = Str:match("(%w+)%s*%((.-)%)")
+        if(Match:count()){
+            return array("void","",Match[1,string],Match[2,string])
+        }
+        return array()
+    }
+    # Unused function for now, was going to use it then couldn't think of anything special to do besides sort with the args.
+    function table getArgData(S:string){
+        local Data = table()
+        local Args = S:explode(",")
+        foreach(K,Str:string = Args){
+            D = Str:match("(%w+):(%w+)") # Returns actual name of arg + type of arg.
+            if(!D:count()){Data[Str,string] = "number"}else{Data[D[1,string],string] = D[2,string]}
+        }
+        return Data
+    }
+    function e2docgenerate([Header Code]:string){
+        local TokenPos = 0
+        local Token = array()
+        local Match = array()
+        local Str = ""
+        local Matched = 0
+        local FileContent = table(Header)
+        local FuncData = table() # Function data sorted.
+        FileContent:pushString("\n## Docs Created with e2tinytokenizer\n")
+        FileContent:pushString("More @https://github.com/Vurv78/expression2-public-e2s\n")
+        while(1){
+            Matched = 0
+            Token = Code:sfind("function(.-)%s*{",TokenPos)
+            if(Token[1,number]==0){break}
+            Str = Token[3,string]
+            Match = getFunctionData(Str)
+            Matched = Match:count()!=0
+            if(Matched){
+                local Args = table()
+                #[if(Match[4,string]!=""){
+                    local S = Match[4,string]
+                    Args = getArgData(S)
+                }]#
+                local ReturnType = Match[1,string]
+                local Meta = Match[2,string]
+                local Name = Match[3,string]
+                local DocStr = format("### " + (Meta ? (Meta + ":") : "") + "%s(%s)\nReturns %s\n",Name,Match[4,string],ReturnType) # Documentation for the func
+                if(!FuncData:exists(ReturnType)){FuncData[ReturnType,table] = table()}
+                FuncData[ReturnType,table]:pushString(DocStr)
+            }else{
+                print("Did not match anything, must be some weird conflicting strings.")
+            }
+            TokenPos = Token[2,number]
+        }
+        local TypesSorted = FuncData:keys():sortAlphabetical()
+        foreach(K,V:string = TypesSorted){
+            local T = FuncData[V,table]
+            FileContent:pushString("\n## Functions that return **"+V+"**\n\n")
+            foreach(K:number,Str:string = T){FileContent:pushString(Str)}    
+        }
+        local FilePath = hash(Code)
+        fileWrite("e2docs/"+FilePath+".txt",FileContent:concat(""))
+        print(format("Finished generating e2 docs and saved to e2docs/%s.txt",FilePath))
+    }
+    # make some documentation of this >:)
+    e2docgenerate("#Documentation of its own code.\n Yes, this was made with the chip\n",getCode())
+}

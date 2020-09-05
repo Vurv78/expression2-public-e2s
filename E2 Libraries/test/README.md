@@ -12,9 +12,9 @@ Returns void
 Returns void
 ### table:write(Pixels:table)
 Returns void
-### createPNG:Width, Height,ColorMode:string()
+### createPNG(Width, Height,ColorMode:string)
 Returns table
-### createPNG:Width,Height()
+### createPNG(Width,Height)
 Returns table
 ### table:writeVector(V:vector)
 Returns void

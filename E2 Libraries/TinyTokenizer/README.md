@@ -1,5 +1,7 @@
 # TinyTokenizer
 
+This repo is of an expression2 chip that scans over code given (see how to use) and gives .md formatted documentation with given or not given descriptions, and uses emoticons from wiremod to make types stand out more. Very useful for your own libraries, but also just looks REALLY cool
+
 ## How to use
 
 ```golo

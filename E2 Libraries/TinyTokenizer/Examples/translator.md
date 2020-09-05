@@ -1,4 +1,5 @@
-# Sixmax's Translator Lib Documentation
+# Sixmax(214569483774197760)'s Translator Lib Documentation
+NOTE: Originally posted on the E2 Beyond Infinity discord, in #public-e2s. I do not take credit for any of these examples except for any by Vurv cause that's me
 ## Docs Created with e2tinytokenizer
 More @https://github.com/Vurv78/expression2-public-e2s
 

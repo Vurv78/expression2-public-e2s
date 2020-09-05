@@ -2,21 +2,6 @@
 ## Docs Created with e2tinytokenizer
 More @https://github.com/Vurv78/expression2-public-e2s
 
-## Functions that return **function**
-
-### ![Function](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Function.png) = putBigUint32(Val![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png)Tbl![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png)Index![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
-No Description Found.
-### ![Function](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Function.png) = table:writeBytes(Data![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png))
-No Description Found.
-### ![Function](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Function.png) = table:adler32()
-No Description Found.
-### ![Function](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Function.png) = table:writeBytes(Data![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png))
-No Description Found.
-### ![Function](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Function.png) = table:writeBytes(Data![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png)Index![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
-No Description Found.
-### ![Function](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Function.png) = table:crc32(Data![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png))
-No Description Found.
-
 ## Functions that return **number**
 
 ### ![Number](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png) = table:done()

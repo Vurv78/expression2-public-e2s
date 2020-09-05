@@ -1,7 +1,9 @@
-@name e2docgenerator2 (e2tinytokenizer)
+@name e2docgenerator (e2tinytokenizer)
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s/
-# Version -- 1
+# Version -- 1.2
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s/
 # A documentation maker I went way too far on. I first intended for it to be pretty simple and allow for custom descriptions
 # but I just felt like making a tokenizer since you really can't do much with gmatch
 # just #include this file, and use the func e2docgenerate(S,S) with first argument as the header, second as code.
@@ -17,6 +19,10 @@ if(first()){
             if(Byte1==Byte2){continue}else{return Byte1>Byte2}    
         }
         return 0
+    }
+    function string getWireIcon(S:string){
+        S = (S:sub(1,1):upper()+S:sub(2))
+        return format("![%s](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-%s.png)",S,S)
     }
     function array array:sortAlphabetical(){
         local Arr = This:clone()
@@ -73,11 +79,37 @@ if(first()){
         local Token = array()
         local Match = array()
         local Str = ""
+        local Desc = ""
         local Matched = 0
         local FileContent = table(Header)
         local FuncData = table() # Function data sorted.
         FileContent:pushString("\n## Docs Created with e2tinytokenizer\n")
         FileContent:pushString("More @https://github.com/Vurv78/expression2-public-e2s\n")
+        while(1){
+            # Look for functions with actual descriptions
+            Token = Code:sfind("###(.-)\n",TokenPos)
+            if(Token[1,number]==0){break}
+            TokenPos = Token[2,number]
+            Desc = Token[3,string]
+            Token = Code:sfind("function(.-)%s*{",TokenPos)
+            Str = Token[3,string]
+            if(Token[1,number]==0){break}
+            Match = getFunctionData(Str)
+            Matched = Match:count()!=0
+            if(Matched){ # Should probably replace with a function as to not waste space
+                local Args = table()
+                local ReturnType = Match[1,string]
+                local Meta = Match[2,string]
+                local Name = Match[3,string]
+                local DocStr = format("### %s = " + (Meta ? (Meta + ":") : "") + "%s(%s)\n%s\n",getWireIcon(ReturnType),Name,Match[4,string],Desc) # Documentation for the func
+                if(!FuncData:exists(ReturnType)){FuncData[ReturnType,table] = table()}
+                FuncData[ReturnType,table][Name,string] = DocStr # We need this reference so that we don't have no-description duplicates
+            }else{
+                print("Did not match anything, must be some weird conflicting strings.")
+            }
+            TokenPos = Token[2,number]
+        }
+        TokenPos = 0
         while(1){
             Matched = 0
             Token = Code:sfind("function(.-)%s*{",TokenPos)
@@ -87,16 +119,12 @@ if(first()){
             Matched = Match:count()!=0
             if(Matched){
                 local Args = table()
-                #[if(Match[4,string]!=""){
-                    local S = Match[4,string]
-                    Args = getArgData(S)
-                }]#
                 local ReturnType = Match[1,string]
                 local Meta = Match[2,string]
                 local Name = Match[3,string]
-                local DocStr = format("### " + (Meta ? (Meta + ":") : "") + "%s(%s)\nReturns %s\n",Name,Match[4,string],ReturnType) # Documentation for the func
+                local DocStr = format("### %s = " + (Meta ? (Meta + ":") : "") + "%s(%s)\nNo Description Given\n",getWireIcon(ReturnType),Name,Match[4,string]) # Documentation for the func
                 if(!FuncData:exists(ReturnType)){FuncData[ReturnType,table] = table()}
-                FuncData[ReturnType,table]:pushString(DocStr)
+                if(!FuncData[ReturnType,table]:exists(Name)){FuncData[ReturnType,table]:pushString(DocStr)}
             }else{
                 print("Did not match anything, must be some weird conflicting strings.")
             }
@@ -106,12 +134,12 @@ if(first()){
         foreach(K,V:string = TypesSorted){
             local T = FuncData[V,table]
             FileContent:pushString("\n## Functions that return **"+V+"**\n\n")
-            foreach(K:number,Str:string = T){FileContent:pushString(Str)}    
+            foreach(K:string,Str:string = T){FileContent:pushString(Str)}    
         }
         local FilePath = hash(Code)
         fileWrite("e2docs/"+FilePath+".txt",FileContent:concat(""))
         print(format("Finished generating e2 docs and saved to e2docs/%s.txt",FilePath))
     }
     # make some documentation of this >:)
-    e2docgenerate("# TinyTokenizer/E2docgenerator documentation.\nYes, this was made with the chip\nThis gives a string of documentation that is sorted by name of function type returned and hopefully will have some extra stuff in other versions.\nNote that this can still catch comments and strings.\n",getCode())
+    #e2docgenerate("# TinyTokenizer/E2docgenerator documentation.\nYes, this was made with the chip\nThis gives a string of documentation that is sorted by name of function type returned and hopefully will have some extra stuff in other versions.\nNote that this can still catch comments and strings.\n",getCode())
 }

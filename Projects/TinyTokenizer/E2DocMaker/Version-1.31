@@ -1,0 +1,175 @@
+@name e2docgenerator2 (e2tinytokenizer)
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s/
+# Version -- 1.31 - Put wire icons for metamethods
+# A documentation maker I went way too far on. I first intended for it to be pretty simple and allow for custom descriptions
+# but I just felt like making a tokenizer since you really can't do much with gmatch
+# just #include this file, and use the func e2docgenerate(S,S) with first argument as the header, second as code.
+
+if(first()){
+    ### Returns a table of args interpreted from a string in an indexed table of arrays. Arrays are formatted as array(NameOfVar,TypeOfVar)
+    function table getArgs(S:string){ # Probably super overcomplicated, but it works perfectly.
+        local Args = S:explode(",")
+        local Defineds = table()
+        foreach(K,Str:string=Args){
+            local TypeName = Str:match("%[(.-)%]%s*:%s*(%w+)")
+            local NameOnly = Str:match("%s*%[(.-)%]%s*")
+            local VarTypeOnly = Str:match("^%s*(%w+)%s*:%s*(%w+)$")
+            local VarOnly = Str:match("^%s*(%w+)%s*$")
+            if(TypeName:count()){
+                foreach(K2,Name:string=TypeName[1,string]:explode(" ")){
+                    Defineds:pushArray(array(Name,TypeName[2,string]))
+                }
+            }elseif(NameOnly:count()){
+                foreach(K2,Name:string=NameOnly[1,string]:explode(" ")){
+                    Defineds:pushArray(array(Name,"number"))
+                }
+            }elseif(VarTypeOnly:count()){
+                Defineds:pushArray(array(VarTypeOnly[1,string],VarTypeOnly[2,string]))
+            }elseif(VarOnly:count()){
+                Defineds:pushArray(array(Str,"number"))
+            }
+        }
+        return Defineds
+    }
+    ### Returns whether a string is alphabetically first to another, pretty useful
+    function number string:alphabeticallyFirst(S:string){ # Pretty sure this actually returns alphabetically last but too lazy to change bubble sort garbage
+        local Min = min(S:length(),This:length())
+        local Byte1 = 0
+        local Byte2 = 0
+        for(I=1,Min){
+            Byte1 = toByte(This,I)
+            Byte2 = toByte(S,I)
+            if(Byte1==Byte2){continue}else{return Byte1>Byte2}    
+        }
+        return 0
+    }
+    ### Gets a wiremod icon from a string type, not perfect since they are named weirdly with camelcase so wirelink will not show up because as an image it's WireLink. Could probably use a dictionary but eh.
+    function string getWireIcon(S:string,N){
+        S = (S:sub(1,1):upper()+S:sub(2))
+        return format("![%s](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-%s.png)",N ? S : "",S)
+    }
+    function array array:sortAlphabetical(){
+        local Arr = This:clone()
+        foreach(K,Type:string = This){ # Bubble sort because we *shouldn't* have that many types to deal with
+            foreach(K2,Type2:string = This){
+                local T = Arr[K2,string]
+                if(Arr[K2,string]:alphabeticallyFirst(Arr[K2+1,string])){Arr[K2,string] = Arr[K2+1,string],Arr[K2+1,string] = T}
+            }
+        }
+        return Arr
+    }
+    ### Returns a method that works exactly like glua's string.find since e2's findRE() is garbo
+    function array string:sfind(P:string,N){ # Returns properly what string.find would return in Glua. (Fuck wire's findRE only returning start index) :P
+        local Start = This:findRE(P,N)
+        local Str = This:matchFirst(P,N)
+        local End = Start+Str:length()
+        return array(Start,End,Str)
+    }
+    ### Returns the function name, arguments inside and what it returns from a function.
+    function array getFunctionData(Str:string){
+        # Return (returntype,meta,name,args)
+        # entity print()
+        Match = Str:match("(%w+)%s+(%w+)%((.-)%)")
+        if(Match:count()){
+            return array(Match[1,string],"",Match[2,string],Match[3,string])
+        }
+        # entity entity:print()
+        Match = Str:match("(%w+)%s+(%w+):(%w+)%((.-)%)")
+        if(Match:count()){
+            return Match
+        }
+        # _ table:print()
+        Match = Str:match("(%w+)%s*:(%w+)%((.-)%)")
+        if(Match:count()){
+            return array("void",Match[1,string],Match[2,string],Match[3,string])
+        }
+        # _ print()
+        Match = Str:match("(%w+)%s*%((.-)%)")
+        if(Match:count()){
+            return array("void","",Match[1,string],Match[2,string])
+        }
+        return array()
+    }
+    ### Returns neatly formatted arguments that you see in the docs with the wire icons and the args next to each other.
+    function string getArgsFormatted(S:string){ # Returns a string of properly formatted argument data with wire icons.
+        local Args = getArgs(S)
+        local Out = ""
+        local AC = Args:count()
+        foreach(K:number,A:array = Args){
+            Out += format("%s %s"+(K!=AC?", " :""),A[1,string],getWireIcon(A[2,string],0))
+        }
+        return Out
+    }
+    ### Overall function to generate docs, header is optional, used if you want a title for your docs. Use this library for github wikis since it is in .md format
+    function e2docgenerate([Header Code]:string){
+        local TokenPos = 0
+        local Token = array()
+        local Match = array()
+        local Str = ""
+        local Desc = ""
+        local Matched = 0
+        local FileContent = table(Header)
+        local FuncData = table() # Function data sorted.
+        FileContent:pushString("\n## Docs Created with e2tinytokenizer\n")
+        FileContent:pushString("More @https://github.com/Vurv78/expression2-public-e2s\n")
+        while(1){
+            # Look for functions with actual descriptions
+            Token = Code:sfind("###(.-)\n",TokenPos)
+            if(Token[1,number]==0){break}
+            TokenPos = Token[2,number]
+            Desc = Token[3,string]
+            Token = Code:sfind("function(.-)%s*{",TokenPos)
+            Str = Token[3,string]
+            if(Token[1,number]==0){break}
+            Match = getFunctionData(Str)
+            Matched = Match:count()!=0
+            if(Matched){ # Should probably replace with a function as to not waste space
+                local ReturnType = Match[1,string]
+                local Meta = Match[2,string]
+                local Name = Match[3,string]
+                local Args = Match[4,string]
+                local DocStr = format("### %s = " + (Meta ? (getWireIcon(Meta,1) + ":") : "") + "%s(%s)\n%s\n",getWireIcon(ReturnType,1),Name,getArgsFormatted(Args),Desc) # Documentation for the func
+                if(!FuncData:exists(ReturnType)){FuncData[ReturnType,table] = table()}
+                FuncData[ReturnType,table][Name+Args,string] = DocStr # We need this reference so that we don't have no-description duplicates
+            }else{
+                print("Did not match anything, must be some weird conflicting strings.")
+            }
+            TokenPos = Token[2,number]
+        }
+        TokenPos = 0
+        while(1){
+            Matched = 0
+            Token = Code:sfind("function(.-)%s*{",TokenPos)
+            if(Token[1,number]==0){break}
+            Str = Token[3,string]
+            Match = getFunctionData(Str)
+            Matched = Match:count()!=0
+            if(Matched){
+                local ReturnType = Match[1,string]
+                local Meta = Match[2,string]
+                local Name = Match[3,string]
+                local Args = Match[4,string]
+                local DocStr = format("### %s = " + (Meta ? (getWireIcon(Meta,1) + ":") : "") + "%s(%s)\nNo Description Found.\n",getWireIcon(ReturnType,1),Name,getArgsFormatted(Args)) # Documentation for the func
+                if(!FuncData:exists(ReturnType)){FuncData[ReturnType,table] = table()}
+                if(!FuncData[ReturnType,table]:exists(Name+Args)){FuncData[ReturnType,table][Name+Args,string] = DocStr}
+            }else{
+                print("Did not match anything, must be some weird conflicting strings.")
+            }
+            TokenPos = Token[2,number]
+        }
+        FuncData:remove("function") # I have no idea why these are created for now.
+        FuncData:remove("func") # Remove weird keys that wouldn't exist and are common in comments until I patch this myself
+        local TypesSorted = FuncData:keys():sortAlphabetical()
+        foreach(K,V:string = TypesSorted){
+            local T = FuncData[V,table]
+            FileContent:pushString("\n## Functions that return **"+V+"**\n\n")
+            foreach(K:string,Str:string = T){FileContent:pushString(Str)}    
+        }
+        local FilePath = hash(Code)
+        fileWrite("e2docs/"+FilePath+".txt",FileContent:concat(""))
+        print(format("Finished generating e2 docs and saved to e2docs/%s.txt",FilePath))
+    }
+    # make some documentation of this >:)
+    e2docgenerate("# Autogenerated documentation of itself, version 1.3",getCode())
+}

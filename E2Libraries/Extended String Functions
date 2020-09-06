@@ -1,2 +1,0 @@
-  function array string:sfind(P:string,N){ # Returns properly what string.find would return in Glua. (Fuck wire's findRE only returning start index) :P
-        local Start = This:findRE(P,N)

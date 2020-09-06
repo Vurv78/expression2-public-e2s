@@ -1,0 +1,17 @@
+@name Extended String Functions
+# Author - Vurv
+# Source - https://github.com/Vurv78/expression2-public-e2s/
+if(first())
+{
+  function number string:findCharCount(Char:string,CaseSensitive)
+  {
+      return CaseSensitive ? This:gmatch(Char):count() : This:gmatch(Char:lower()):count()+This:gmatch(Char:upper()):count()
+  }
+  function array string:sfind(P:string,N){ # Returns properly what string.find would return in Glua. (Fuck wire's findRE only returning start index) :P
+        local Start = This:findRE(P,N)
+        local Str = This:matchFirst(P,N)
+        local End = Start+Str:length()
+        #print(This:sub(Start,End)) # To verify it works.
+        return array(Start,End,Str)
+  }
+}

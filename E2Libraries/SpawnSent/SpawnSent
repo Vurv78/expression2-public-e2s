@@ -6,10 +6,16 @@
 # 1 = spawn regular scripted ent, 2 = spawn npcs
 # 3 = spawn a vehicle, 4 = spawn a SWEP/weapon
 # 5 = spawn a prop, like propSpawn() but works for ragdolls too
+
+#ifndef entity:teleport(vector)
+    error("This needs some sort of entity teleportation function! In this case e:teleport(v) from nexuscore is missing!")
+#endif
+
 if( first() ){
     SSent_Cache = table()
     SSent_Types = table("gm_spawnsent ","gmod_spawnnpc ","gm_spawnvehicle ","gm_spawnswep ","gm_spawn ")
     SSent_SavedSents = table()
+    ### Spawns a scripted entity.\n Takes [Class] [Pos] [Ang] [Frozen] and a number for how long to wait for the prop to exist. \n The last argument is a number to define the type of sent, which should be 1 for a regular sent, 2 for an npc, 3 for a vehicle, 4 for a SWEP/weapon and 5 for props, but also works with stuff like the mattress prop, keeping it a ragdoll.
     function spawnSent(Class:string,Pos:vector,Ang:angle,Frozen,Timeout,Type)
     {
         concmd(SSent_Types[Type,string]+Class)
@@ -18,6 +24,7 @@ if( first() ){
         SSent_Cache[Code,table] = table("class"=Class,"apos"=O:aimPos(),"pos"=Pos,"ang"=Ang,"frozen"=Frozen)
         timer(Code,Timeout)
     }
+    ### Cleans up all of the sents currently kept track of with the library, this will not work for props that were not detected and didn't get teleported.
     function cleanupSents()
     {
         SSent_SavedSents:propDelete()
@@ -41,4 +48,3 @@ if( first() ){
         SSent_Cache:remove(Name)
     }
 }
-

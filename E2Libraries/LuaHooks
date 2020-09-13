@@ -1,0 +1,73 @@
+@name hooklib
+@persist Hooks:table
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s/
+if(first()){
+    # Very neat and complicated way of doing this so that you can add runOn* stuff easily.
+    # Only downside is that I currently can't think of a way to handle specifics like runOnKeys(R,N,R)
+    Hooks = table()
+    ### Creates a hook, used internally to define what hooks can be called. Don't use this unless you know what you're doing.
+    function addHook([HookName CB Call]:string){
+        # Auto assigns counter so we don't waste space
+        Hooks[HookName,table] = table(
+            "cb" = CB,
+            "call" = Call,
+            "counter" = 0,
+            "data" = table()
+        )
+    }
+    ### Whenever hook [hook] runs, the function [func] given will be called and only that function. It behaves like runOn* except only runs that function like how lua works.
+    function hookAdd([Hook ID Func]:string){
+        Hook = Hook:lower()
+        local HookTable = Hooks[Hook,table]
+        if(!Hooks:exists(Hook)){error("hookAdd called with invalid hook --"+Hook)}
+        local Data = HookTable["data",table]
+        if(!Data:exists(ID)){ # Only add to the counter if the runOn* didn't exist. parity with hookRemove to not be able to break it
+            local TC = HookTable["counter",number]
+            TC = TC + 1
+        }
+        HookTable["data",table][ID,string] = Func
+        HookTable["call",string](1)
+    }
+    ### Removes a hook so it isn't called or saved anymore.
+    function hookRemove([Hook ID]:string){
+        if(!Hooks:exists(Hook)){error("hookRemove called with invalid hook --"+Hook)}
+        local HookTable = Hooks[Hook,table]
+        local Data = HookTable["data",table]
+        if(Data:exists(ID)){
+            HookTable["data",table]:remove(ID)
+            local Counter = HookTable["counter",number]
+            Counter = Counter - 1
+            if(Counter < 1){HookTable["cb",string](0)} # Stop running on * since nothing is looking for it.
+        }
+        
+    }
+    
+    # These are the current list of hooks that can be added.
+    # Can't add anything complex like runOnKeys unfortunately (Without a lot of hard-coding)
+    # I'll think of a way to do it later
+    # Also can't use useClk because it returns an entity and e2 is a pain in the ass
+    
+    addHook("tick","tickClk","runOnTick")
+    addHook("chat","chatClk","runOnChat")
+    addHook("file","fileClk","runOnFile")
+    addHook("death","deathClk","runOnDeath")
+    addHook("spawn","spawnClk","runOnSpawn")
+    addHook("playerconnect","playerConnectClk","runOnPlayerConnect")
+    addHook("playerdisconnect","playerDisconnectClk","runOnPlayerDisconnect")
+    addHook("last","last","runOnLast")
+    addHook("list","fileListClk","runOnList")
+    addHook("http","httpClk","runOnHTTP")
+}
+
+foreach(K:string,T:table = Hooks){
+    local CB = T["cb",string]
+    if(CB()[number]){
+        local Data = T["data",table]
+        foreach(ID:string,Func:string = Data){
+            Func()
+        }
+        exit()
+    }
+}
+

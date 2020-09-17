@@ -1,0 +1,111 @@
+@name PNGTracer v1
+@inputs WL:wirelink
+@persist Done Pixel Res SunDir:vector [Img TextureBuffer]:table Buffering Range TexRes BufferStr:string
+
+# Source -- https://github.com/Vurv78/expression2-public-e2s/tree/master/Raytracers
+# Author -- Vurv
+# Note -- This raytracer is used by connecting the chip to a digital screen. It requires the png library that is also found in the source link
+# This is so it can output the png image with a .txt file extension to e2files/render.txt, rename it to render.png to see it!
+# The hololine library is optional but it makes the tracer look nicer.
+# This accepts images created by a special variant of the texture collector v4 which can be found https://github.com/Vurv78/starfallex-creations/blob/master/StarfallEx/GMODTextureCollector/Texture-Collector-v4-(Probably-Final)/Texture-Collector-v4.lua here.
+# Format is rrrgggbbb
+
+if(first()){
+    #include "modules/pnglib"
+   # #include "hololine" "optional, can't use a comment here lol"
+    runOnTick(1)
+    runOnFile(1)
+    Res = 256
+    TexRes = 64
+    Range = 60000
+    Done = 1 # So the tracer doesn't immediately start
+    SunDir = sunDirection()
+    Img = createPNG(Res,Res,"rgb")
+    
+    function bufferTexture(Tex:string){
+        if(Buffering){return}
+        Buffering = 1
+        BufferStr = Tex
+        fileLoad("textures/" + Tex + ".txt") # Save it with a safe file name replacing \ with _
+    }
+    
+    function vector2 getUVs(ScaleToPix,[Pos Normal]:vector){
+        local Uvs = Pos:rotate(-Normal:toAngle())
+        local WorldSize = 128 # Default world size, not actual pixel size. Will be rescaled in post
+        local V = vec2(Uvs[2]%WorldSize,(TexRes-Uvs[3])%WorldSize)
+        local Ratio = WorldSize/ScaleToPix
+        V[1] = V[1]/Ratio
+        V[2] = V[2]/Ratio
+        V = floor(V)
+        return V
+    }
+    
+    function vector getPixelColor(U,V,Tex:string){
+        local T = TextureBuffer[Tex,table] # We already know it exists
+        if(T:exists(U+V*TexRes+1)){
+            local Col = T[U+V*TexRes+1,array]
+            return vec(Col[1,string]:toNumber(),Col[2,string]:toNumber(),Col[3,string]:toNumber())   
+        }else{
+            return vec(255)
+        }
+    }
+    
+    rangerPersist(1)
+    rangerFilter(entity())
+    
+}elseif(fileClk()){
+    local Dat = fileRead()
+    if(fileStatus()!=_FILE_OK){
+        # This will always occur if either
+        # a. the file is missing
+        # b. the file is too large (textures above 128x usually)
+        printColor(vec(255,0,0),"Error with file textures/" + BufferStr + ".txt")
+        TextureBuffer[BufferStr,table] = table()
+    }else{
+        local Pixels = Dat:gmatch("(%d%d%d)(%d%d%d)(%d%d%d)")
+        local Name = fileName():matchFirst("^textures/(.-).txt")
+        TextureBuffer[Name,table] = Pixels
+    }
+    Buffering = 0
+}
+
+if(first() | ~WL & WL){
+    local A = 1048569
+    WL[A]=3 WL[A+3]=WL[A+4]=Res WL[A+5]=1
+    if(WL){Done=0}
+}
+
+while(!Buffering & !Done & perf(60)){
+    local X = Pixel%Res
+    local Y = floor(Pixel/Res)
+    local Pos = entity():pos()
+    local Dir = vec(1,0.5-X/Res,0.5-Y/Res):rotate(entity():angles())
+    local Trace = rangerOffset(Range,Pos,Dir)
+    #holoLine(1,entity():pos(),entity():pos()+Dir*Range,vec(255,0,0),1) # optional
+    local Col = vec(255)
+    if(Trace:hitSky()){
+        Col = mix(vec(98,89,227),vec(89,190,227),(Dir:dot(vec(0,0,1))+1)/2)
+    }elseif(Trace:entity()){
+        Col = Trace:entity():getColor()
+    }else{
+        local HitTexture = Trace:hitTexture():replace("/","_")
+        if(TextureBuffer:exists(HitTexture)){
+            local HitPos = Trace:pos()
+            local Normal = Trace:hitNormal()
+            local Shading = ((Normal:dot(SunDir)+1)/2+(SunDir-(2*Normal:dot(SunDir)*Normal)):dot(SunDir)^32*0.5+rangerOffset(Range,Trace:pos(),SunDir/2):hitSky())/2 # Godly shading
+            local Uvs = getUVs(TexRes,HitPos,Normal)
+            Col = getPixelColor(Uvs[1],Uvs[2],HitTexture)*Shading
+        }else{
+            bufferTexture(HitTexture)
+            break
+        }
+    }
+    WL[X+Y*Res] = rgb2digi(Col,3) # Write to the digital screen
+    Img:writeVector(Col) # Write PNG Pixel data
+    Pixel = (Pixel+1)%Res^2
+    if(!Pixel){ # Render is done
+        print("Done!")
+        Img:export("render.txt") # Save the file to e2files/render.txt
+        Done=1
+    }
+}

@@ -6,14 +6,23 @@ More @https://github.com/Vurv78/expression2-public-e2s
 ## List of hooks added
 
 addHook("tick","tickClk","runOnTick")
+
 addHook("chat","chatClk","runOnChat")
+
 addHook("file","fileClk","runOnFile")
+
 addHook("death","deathClk","runOnDeath")
+
 addHook("spawn","spawnClk","runOnSpawn")
+
 addHook("playerconnect","playerConnectClk","runOnPlayerConnect")
+
 addHook("playerdisconnect","playerDisconnectClk","runOnPlayerDisconnect")
+
 addHook("last","last","runOnLast")
+
 addHook("list","fileListClk","runOnList")
+
 addHook("http","httpClk","runOnHTTP")
 
 ## Functions that return **void**

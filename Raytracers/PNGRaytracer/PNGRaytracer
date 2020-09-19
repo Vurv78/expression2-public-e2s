@@ -1,7 +1,7 @@
 @name PNGTracer v1
 @inputs WL:wirelink
 @persist Done Pixel Res SunDir:vector [Img TextureBuffer]:table Buffering Range TexRes BufferStr:string
-
+@model models/dav0r/camera.mdl
 # Source -- https://github.com/Vurv78/expression2-public-e2s/tree/master/Raytracers
 # Author -- Vurv
 # Note -- This raytracer is used by connecting the chip to a digital screen. It requires the png library that is also found in the source link
@@ -12,10 +12,10 @@
 
 if(first()){
     #include "modules/pnglib"
-    ##include "hololine" "optional, can't use a comment here lol"
+    #include "hololine" "optional, can't use a comment here lol"
     runOnTick(1)
     runOnFile(1)
-    Res = 256
+    Res = 128
     TexRes = 64
     Range = 60000
     Done = 1 # So the tracer doesn't immediately start
@@ -51,6 +51,7 @@ if(first()){
     }
     
     rangerPersist(1)
+    rangerHitEntities(0)
     rangerFilter(entity())
     
 }elseif(fileClk()){
@@ -75,13 +76,13 @@ if(first() | ~WL & WL){
     if(WL){Done=0}
 }
 
-while(!Buffering & !Done & perf(60)){
+while(!Buffering & !Done & perf(35)){
     local X = Pixel%Res
     local Y = floor(Pixel/Res)
     local Pos = entity():pos()
     local Dir = vec(1,0.5-X/Res,0.5-Y/Res):rotate(entity():angles())
     local Trace = rangerOffset(Range,Pos,Dir)
-    #holoLine(1,entity():pos(),entity():pos()+Dir*Range,vec(255,0,0),1) # optional
+    holoLine(1,entity():pos(),entity():pos()+Dir*Range,vec(255,0,0),1) # optional
     local Col = vec(255)
     if(Trace:hitSky()){
         Col = mix(vec(98,89,227),vec(89,190,227),(Dir:dot(vec(0,0,1))+1)/2)

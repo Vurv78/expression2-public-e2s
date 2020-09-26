@@ -1,20 +1,17 @@
-#defines whiletrue while(1)
-#defines do {
-#defines end }
-#defines heloworld print("hello world!")
-#defines vurv print("this is some really cool shit :D")
+#define whiletrue while(1)
+#define do {
+#define end }
+#define heloworld print("hello world!")
+#define vurv print("this is some really cool shit :D")
 
-#include "defonself" # These will be removed post-loading
-definesInit(getCode(),"define") # First argument NEEDS to be this code. There's no way for includes to get the main code.
-# Second argument should be the keyword used to #define stuff. do not include the hashtag since it'll always be a comment. 
+#include "defonself" # This will be removed once loaded
 
 "vurv"
 "heloworld"
 
 "whiletrue" "do" "end"
 
-# Output --> 
-Initializing defines!
+# Output -->
 this is some really cool shit :D
 hello world!
 (Throws error for quota from the while(1){} loop)

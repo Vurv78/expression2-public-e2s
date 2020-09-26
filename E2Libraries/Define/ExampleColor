@@ -1,8 +1,8 @@
 @name Color Example
-#defineas vector_origin vec(0,0,0)
-#defineas vector_up vec(0,0,1)
-#defineas red vec(255,0,0)
-#defineas blue vec(0,0,255)
+#define vector_origin vec(0,0,0)
+#define vector_up vec(0,0,1)
+#define red vec(255,0,0)
+#define blue vec(0,0,255)
 
 #include "definelib"
 

@@ -1,0 +1,865 @@
+@name Helicopter v1
+@persist [ACTIVE BREAKING SPEED MaxHP Health Dam Die MISDET]:number
+@persist [HelProp Seat Drv MISSLE]:entity
+@persist [Vel]:vector
+@persist [BreakParts Bombs]:array
+
+
+#ifdef effect()
+@persist Eff:effect
+#endif
+
+# Author -- Vurv
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+# Notes --
+# Cancer helicopter that I made ages ago, but just didn't release.
+# I had another one in the making and I guess I thought I would've released that one, but eh this one is just better as of now
+# Blatant copy of haze_of_dream's combine helicopter
+
+#Weapons
+@persist [Spread Dmg FireRate LoadGun MissCool Shots BombCooldown ForceBullet]:number
+#Weapons
+
+#stuffs
+@persist [AUTOPILOT]:number
+#stuffs
+
+#Timers
+@persist [BombAnim BOMBCOOL MISSCOOL SHOOTING]:number
+#Timers
+
+#Physics
+@persist [RotAng]:angle
+@persist [Pitch Yaw Roll Pull AngPull C]:number
+#Physics
+@persist [EGP]:wirelink
+
+#end towers
+@persist [Healing]:gtable
+
+
+if(first()) {
+
+    MaxHP = 5600 #5600
+    Dmg = 6  #Damage in a single shot
+    Shots = 10 #Number of shots per thingy
+    FireRate = 100 #FireRate of pulse cannon (in ms)
+    Spread = 0.05 #0.06 #Spread
+    SPEED = 10 #Default 10-15
+    Color = vec(255)
+    Alpha = 220 #Alpha for the driver hitbox
+    AUTOPILOT=0
+    ForceBullet = 5
+    BombCooldown = 1.5*1000 
+    
+    #DEBUG
+    print("DPS: " + (Dmg*Shots)*(1000/(FireRate)) )
+    
+    Force = 1 # Applyforce power
+    Pull = 0.03 #Force to pull vehicle back when not moving
+    AngPull = 0.2 #Force to pull vehicle angles upright
+    LoadGun = 1.5 #Time to charge Pulse cannon in seconds default 1.5
+    MissCool = 6 #Missle cooldown in seconds, default 6
+    #Pull 0.04
+    #AngPull 0.35
+    
+    Healing = gTable("endtower")
+ 
+    runOnLast(1)
+    runOnChat(1)
+    entity():setPos(entity():toWorld(vec(0,0,-20)))
+    entity():setMass(50000)
+    propSpawnUndo(0)
+    #ifdef enableConstraintUndo(number)
+    enableConstraintUndo(0)
+    #endif
+    
+    runOnTick(1)
+    
+    rangerPersist(1)
+    rangerFilter(players())
+    
+    Seat = seatSpawn("models/props_phx/carseat.mdl",entity():toWorld(vec(0,0,60)),ang(),1)
+    
+    Seat:propGravity(0)
+    
+    # holo 1 = heli
+    #ifdef spawnEgpHud(vector angle number)
+    EGP = spawnEgpHud(entity():toWorld(vec(0,0,-10)),ang(),1):wirelink()
+    owner():egpHUDSetPlayer(EGP:entity())
+    #endif
+    EGP:egpHudToggle()
+    
+    EGP:egpTextLayout(2,Health:toString(),egpScrSize(owner()),vec2(50))
+    
+    HelProp = propSpawn("models/combine_helicopter.mdl",Seat:toWorld(vec(0,100,55)),Seat:angles() + ang(0,-90,0),1)
+    
+    HelProp:propGravity(0)
+    #ifdef runOnDmg(number,array)
+    runOnDmg(1,array(HelProp,Seat) )
+    #endif
+    
+    rangerFilter( array(HelProp,entity(),Seat) )
+    
+    #noCollide(Seat,HelProp)
+    #ifdef noCollideAll(entity,number)
+    noCollideAll(Seat,1)
+    #endif
+    #weld(Seat,HelProp)
+    Seat:parentTo(HelProp)
+    
+    holoCreate(1,HelProp:pos(),vec(1.001))
+    holoColor(1,Color)
+    holoAng(1,Seat:angles())
+    holoModel(1,"models/combine_helicopter.mdl")
+    holoParent(1,HelProp)
+    
+    MISSCOOL=1
+    
+    Health = MaxHP
+    
+    holoCreate(0,holoEntity(1):pos(),vec(1.001))
+    holoAng(0,holoEntity(1):angles())
+    holoModel(0,"models/combine_helicopter.mdl")
+    holoParent(0,1)
+    holoAlpha(0,Alpha)
+    
+    holoCreate(2,vec(),vec(10,10,0.5))
+    holoModel(2,"hq_torus")
+    holoColor(2,vec(255,0,0))
+    holoMaterial(2,"models/debug/debugwhite")
+    holoAlpha(2,255)
+    
+    holoCreate(3,HelProp:toWorld(vec(200,0,-100)))
+    #holoCreate(3,HelProp:attachmentPos("Muzzle"))
+    holoAlpha(3,0)
+    holoAng(3,HelProp:attachmentAng("Gun"))
+    holoParent(3,HelProp)
+    
+    holoCreate(4,HelProp:toWorld(vec(-235.521179,2.417969,29.088867) ),vec(0.5) )
+    holoColor(4,vec(255,0,0))
+    holoModel(4,"hq_icosphere")
+    holoAng(4,HelProp:angles())
+    holoParent(4,HelProp)
+    
+    holoCreate(5,HelProp:toWorld(vec(-6.018433,89.914551,-43.456055) ),vec(0.5) )
+    holoColor(5,vec(255,0,0))
+    holoModel(5,"hq_icosphere")
+    holoAng(5,HelProp:angles())
+    holoParent(5,HelProp)
+    
+    holoCreate(6,HelProp:toWorld(vec(-5.707062,-88.859375,-43.069336) ),vec(0.5) )
+    holoColor(6,vec(255,0,0))
+    holoModel(6,"hq_icosphere")
+    holoAng(6,HelProp:angles())
+    holoParent(6,HelProp)
+    
+    Seat:propFreeze(0)
+    HelProp:propFreeze(0)
+    
+    HelProp:setAlpha(0)
+    #HelProp:propGravity(0)
+    
+    BOMBCOOL=1
+    
+    Healing["Target",entity] = HelProp
+    
+    HelProp:propMakePersistent(1)
+    
+    Yaw = HelProp:angles():yaw()
+    
+    
+}
+
+if(Healing & Healing["Hit",number]) {
+    
+    timer("heal",100)
+        
+    if(clk("heal")){
+        Health = clamp(Health+2,0,MaxHP)
+    }
+
+}
+
+if(last()){
+
+    Drv:setMaterial("")
+    Healing["Target",entity] = noentity()
+    Healing["DeadHeli",number]=1
+}
+
+Ranger = rangerOffset(100,HelProp:toWorld(vec(0,0,-10)),-HelProp:up())
+
+if(first() | changed(ACTIVE)) {
+
+    if(ACTIVE){
+        #ifdef holoAnim(number,string)
+        holoAnim(1,"idle")
+        holoAnim(0,"idle")
+        #endif
+        
+        holoAng(1,HelProp:toWorld(ang(0,0,0)))
+        holoAng(0,HelProp:toWorld(ang(0,0,0)))
+        
+        holoVisible(1,Seat:driver(),0)
+        holoVisible(0,Seat:driver(),1)
+        
+        holoVisible(2,players(),0)
+        holoVisible(2,Seat:driver(),1)
+        
+        HelProp:soundPlay(2,1000,"NPC_AttackHelicopter.Rotors")
+        
+        Seat:setAlpha(100)
+        HelProp:propGravity(0)
+        
+    }elseif(!ACTIVE){
+        
+        #ifdef holoAnim(number,string)
+        holoAnim(1,"rudder")
+        holoAnim(0,"rudder")
+        #endif
+        holoAng(1,HelProp:angles())
+        holoAng(1,HelProp:toWorld(ang(0,90,0)))
+        holoAng(0,HelProp:toWorld(ang(0,90,0)))
+        
+        
+        holoVisible(1,players(),1)
+        holoVisible(0,players(),0)
+        
+        holoVisible(2,players(),0)
+        soundStop(2)
+        
+        HelProp:propGravity(1)
+        
+        Seat:setAlpha(255)
+        
+        stoptimer("unbeep")
+        stoptimer("beep")
+
+        for(I=4,6){
+    
+            if(holoEntity(I):getColor() == vec(255,100,100)) {
+                
+                holoDisableShading(I,0),holoColor(I, holoEntity(I):getColor()-vec(100,100,100))
+            }
+        }
+
+    }
+}
+####
+####
+if(AUTOPILOT){ACTIVE=1}
+
+if(ACTIVE) {
+    #ifdef holoSetPose(number,string,number)
+    
+    local YawThing = clamp(HelProp:toLocal(Seat:driver():eyeAngles())[2],-90,90)
+    local PitchThing = clamp(HelProp:toLocal(Seat:driver():eyeAngles())[1],-90,90)
+    holoSetPose(0,"weapon_yaw",YawThing)
+    holoSetPose(0,"weapon_pitch",-PitchThing)
+    #endif
+    
+    if(MISSCOOL && changed(Seat:driver():eye())){
+        local Rng = rangerOffset(100000,holoEntity(3):pos(),Seat:driver():eye())
+        holoPos(2, Rng:pos())
+        holoAng(2, Rng:hitNormal():toAngle() + ang(90,0,0))
+    }elseif(changed(MISSCOOL)){
+        holoPos(2,vec(0,0,-5000))
+    }
+    
+    local W = Seat:driver():keyForward()
+    local A = Seat:driver():keyLeft()
+    local S = Seat:driver():keyBack()
+    local D = Seat:driver():keyRight()
+    local SPACE = Seat:driver():keyJump()
+    local SHIFT = Seat:driver():keySprint()
+    local M1 = Seat:driver():keyAttack1()
+    local M2 = Seat:driver():keyAttack2()
+    local Reload = Seat:driver():keyReload()
+    
+    #Autopilot
+    if(AUTOPILOT){
+        Tab = table()
+        
+        Int = randint(1,9)
+        
+        Tab[Int,number]=1
+
+        W = Tab[1,number]
+        A = Tab[2,number]
+        S = Tab[3,number]
+        D = Tab[4,number]
+        SPACE = Tab[5,number]
+        SHIFT = Tab[6,number]
+        M1 = Tab[7,number]
+        M2 = Tab[8,number]
+        Reload = Tab[9,number]
+
+    }
+
+    ###PHYS
+    
+        if(D) {
+        
+            Yaw-=0.5
+            Roll=clamp(Roll+0.5,0,10)
+        
+        }elseif(A){
+
+            Yaw+=0.5
+            Roll=clamp(Roll-0.5,-15,0)
+        
+        }else{
+            Roll=clamp(Roll-0.5,0,10)
+        }
+        
+        
+        RotAng = ang(Pitch,Yaw,Roll)
+    
+        local Mass = HelProp:mass()
+        
+        #Seat:applyForce( Seat:up()*Mass*(-Ranger:distance() + 30) - Seat:vel() )
+        
+        if(W){
+            HelProp:applyForce( HelProp:forward()*Mass*SPEED )
+            Pitch = clamp(Pitch+(0.2),-30,30)
+        }elseif(S){
+            HelProp:applyForce( -HelProp:forward()*Mass*SPEED )
+            Pitch = clamp(Pitch-(0.2),-30,30)
+        }else{#(Pitch!=0? Pitch/50 : 0.25)
+            Pitch = Pitch!=0?Pitch-Pitch/50 : 0
+        
+        }
+        
+        if(!W & !A & !S & !D & !SPACE & !SHIFT){
+            HelProp:applyForce( -HelProp:vel()*Mass*Pull )
+        }
+        
+        if(SPACE){
+            HelProp:applyForce( (HelProp:up()*Mass*SPEED/2) )
+        }elseif(SHIFT){
+            HelProp:applyForce( (-HelProp:up()*Mass*SPEED/2))
+        }elseif(Ranger:distance()<60){
+            HelProp:applyForce( (HelProp:up()*Mass*(-Ranger:distance() + 30) - HelProp:vel()) )
+        }
+        
+        for(I=1,6){Tab[1,number]=0}
+
+    HelProp:applyTorque( ( ( (HelProp:toLocalAxis(rotationVector(quat( RotAng )/quat(HelProp)))) *200-HelProp:angVelVector()*20)*HelProp:inertia() ) *AngPull)
+
+    
+    #print(Ranger:distance())
+    
+    ###PHYS
+
+
+    if(changed(SHOOTING)) {
+    
+        if(SHOOTING){    
+            holoEntity(3):soundPlay(3,100,"NPC_AttackHelicopter.FireGun")
+        }else{
+            soundStop(3)
+            holoEntity(3):soundPlay(4,1,"NPC_AttackHelicopter.ChargeDownGun")
+        }
+    }
+    
+    if(changed(M2)) {
+    
+        if(M2){
+        
+            if(!MISSCOOL){
+            
+                Seat:driver():soundPlay(5,1,"Buttons.snd2")
+            
+            }else{
+        
+                MISSCOOL=0
+                
+                timer("misslecooldown",MissCool*1000)
+            
+                MISDET = 1
+                MISSLE = propSpawn("models/props_phx/mk-82.mdl",holoEntity(3):toWorld(vec(0,0,0)),Seat:driver():eye():toAngle(),1)
+                
+                MISSLE:setColor(vec(100))
+                MISSLE:setTrails(10,10,2,"trails/smoke",vec(100),255)
+                
+                holoEntity(3):soundPlay(4,1,"NPC_Helicopter.FireRocket")
+            }
+            
+        }
+    }
+    
+    if(BOMBCOOL && changed(Reload) & Reload){
+        
+        BOMBCOOL = 0
+        HelProp:soundPlay(15,0.5,"NPC_AttackHelicopter.DropMine")
+    
+        timer("bombcool",BombCooldown/((Health<1000)+1))
+        
+        Bombs:pushEntity(propSpawn("models/combine_helicopter/helicopter_bomb01.mdl",HelProp:toWorld(vec(0,0,-50)),HelProp:angles(),0))
+        
+        foreach(Key,Bomb:entity = Bombs){
+        
+            Bomb:applyForce(-Bomb:up()*Bomb:mass()*25)
+            Bomb:soundPlay(5+Key,5999,"NPC_AttackHelicopterGrenade.Ping")
+            
+        }
+                
+    }
+    
+    if(Bombs:count()>0){
+        
+        foreach(Key,Bomb:entity = Bombs){
+            
+            if(abs(Bomb:creationTime()-curtime())>=6){
+                    
+                    #ifdef effect()
+                    local Fx = effect()
+        
+                    Fx:setOrigin(Bomb:pos())
+                    Fx:setRadius(30)
+                    Fx:play("Explosion")
+                    #endif
+                            
+                    propSpawn("models/props_c17/oildrum001_explosive.mdl",Bomb:pos(),Bomb:angles(),1):propBreak()
+                    
+                    Bombs:remove(Key)
+                    Bomb:propDelete()
+        
+            }elseif(changed(abs(Bomb:creationTime()-curtime())%2) & abs(Bomb:creationTime()-curtime())%2){
+                Bomb:setSkin(!Bomb:getSkin())
+            }
+    
+        
+        }
+    
+    }
+
+    ####
+    #########SHOOTING
+    ####
+    
+    if(changed(M1)){
+    
+        if(M1){
+        
+            HelProp:soundPlay(10,LoadGun,"NPC_AttackHelicopter.ChargeGun")
+        
+        }else{
+            soundStop(10)
+            stoptimer("chargegun")
+            SHOOTING=0
+        }
+    
+    }
+    
+    if(M1){
+    
+        timer("chargegun",LoadGun*1000)
+        
+        if(clk("chargegun")){
+        
+            SHOOTING=1
+            local Rng = rangerOffset(100000,holoEntity(3):pos(),Seat:driver():eye())
+            EGP:egp3DTracker(2,Rng:pos())
+            EGP:egpBoxOutline(3,egpScrSize(owner())/2,vec2(50))
+            EGP:egpPos(3,EGP:egpPos(2))
+        
+        }
+    
+    }
+    
+    if(SHOOTING) {
+    
+        timer("shootcool",FireRate)
+        
+        if(changed(clk("shootcool")) && clk("shootcool")){
+            #ifdef entity:turretShoot(vector,number,number,number,number,number)
+            holoEntity(3):turretShoot( Seat:driver():eye() , Dmg, Spread, ForceBullet, Shots , 3 )
+            #endif
+        } #0.07 25
+                                                         #dmg
+    }elseif(clk("shootcool")) {stoptimer("shootcool")}
+    
+    ####
+    #########SHOOTING
+    ####
+    
+    timer("lightbeep",1000)
+    
+    if(clk("lightbeep")) {
+        
+        #ifdef effect()
+        local Effkt = effect()
+        Effkt:setRadius(50)
+    
+        for(I = 4,6) {
+        
+            holoDisableShading(I,1),holoColor(I, holoEntity(I):getColor()+vec(100,100,100) )
+            Effkt:setOrigin(holoEntity(I):pos())
+            Effkt:play("CommandPointer")
+        
+        }
+        
+        #endif
+        
+        timer("unbeep",250)
+    
+    }elseif(clk("unbeep")) {
+    
+        for(I = 4,6) {
+        
+            holoDisableShading(I,0),holoColor(I, holoEntity(I):getColor()-vec(100,100,100) )
+        
+        }
+    
+    }
+
+}else{
+        
+        #local RotAng = ang()
+        #local Mass=HelProp:mass()
+        #HelProp:applyForce( HelProp:up()*Mass*(-Ranger:distance() + 95) - HelProp:vel() )
+        #HelProp:applyTorque(( (HelProp:toLocalAxis(rotationVector(quat( RotAng )/quat(HelProp)))) *200-HelProp:angVelVector()*20)*HelProp:inertia())
+
+}
+
+#END IF NOT ACTIVE
+
+####
+####
+
+if(changed(Health)) {
+    
+    if(Health==MaxHP){
+        Healing["MaxHP",number]=1
+    }else{
+        Healing["MaxHP",number]=0
+    }
+    
+    if(changed(Health<MaxHP*70/100) & Health<MaxHP*70/100) {
+
+        holoCreate(15,HelProp:toWorld(vec(-74.546143,-1.773468,-36.702148)) )
+        holoAlpha(15,0)
+        holoParent(15,HelProp)
+        #ifdef entity:ignite()
+        holoEntity(15):ignite()
+        #endif
+        
+        local Prop = propSpawn("models/gibs/helicopter_brokenpiece_02.mdl",HelProp:toWorld(vec(0,0,-100)),ang(),0)
+        #ifdef entity:ignite()
+        Prop:ignite()
+        #endif
+        #ifdef effect()
+        Eff:play("Explosion")
+        #endif
+        #ifdef noCollide(entity,entity)
+        noCollide(HelProp,Prop)
+        #endif
+        Prop:applyForce( (randvec(-3000,3000) + Vel)*Prop:mass()*0.5)
+    
+    }
+
+    if(changed(Health<MaxHP*50/100) & Health<MaxHP*50/100) {
+
+        holoCreate(14,HelProp:toWorld(vec(0,45,10)) )
+        holoAlpha(14,0)
+        holoParent(14,HelProp)
+        #ifdef entity:ignite()
+        holoEntity(14):ignite()
+        #endif
+    }
+
+    if(changed(Health<MaxHP*30/100) & Health<MaxHP*30/100) {
+
+        holoCreate(13,HelProp:toWorld(vec(105.009888,-14.178223,-71.416016)) )#
+        holoAlpha(13,0)
+        holoParent(13,HelProp)
+        #ifdef entity:ignite()
+        holoEntity(13):ignite()
+        #endif
+        
+        local Prop = propSpawn("models/gibs/helicopter_brokenpiece_01.mdl",HelProp:toWorld(vec(0,0,-100)),ang(),0)
+        
+        #ifdef entity:ignite()
+        Prop:ignite()
+        #endif
+        #ifdef effect()
+        Eff:play("Explosion")
+        #endif
+        #ifdef noCollide(entity,entity)
+        noCollide(HelProp,Prop)
+        #endif
+        Prop:applyForce( (randvec(-3000,3000) + Vel)*Prop:mass()*0.5)
+    
+    }
+
+
+    if(changed(Health<MaxHP*10/100) & Health<MaxHP*10/100) {
+
+
+        HelProp:soundPlay(10,3,"NPC_AttackHelicopter.BadlyDamagedAlert")
+        holoCreate(12,HelProp:toWorld(vec(35.522217,-4.847168,35.497070)) )
+        holoAlpha(12,0)
+        holoParent(12,HelProp)
+        #ifdef entity:ignite()
+        holoEntity(12):ignite()
+        #endif
+    }
+    
+    if(changed(Health>MaxHP*10/100) & Health>MaxHP*10/100) {
+        holoDelete(12)
+    }elseif(changed(Health>MaxHP*30/100) & Health>MaxHP*30/100){
+        holoDelete(13)
+    }elseif(changed(Health>MaxHP*50/100) & Health>MaxHP*50/100){
+        holoDelete(14)
+    }elseif(changed(Health>MaxHP*70/100) & Health>MaxHP*70/100){
+        holoDelete(15)
+    }
+
+    if(Health<0) {
+    
+        ACTIVE=0
+        
+        HelProp:applyForce(-HelProp:up()*HelProp:mass()*5)
+    
+        HelProp:soundPlay(13,1999,"NPC_AttackHelicopter.CrashingAlarm1")
+    
+        timer("break",2000)
+        
+        if(clk("break")){
+            soundStop(13)
+            BREAKING = 1
+        }
+    
+    }
+
+
+
+}
+
+EGP:egpCircle(1,vec2( egpScrW(owner())/2,egpScrH(owner())/2 ),vec2(8))
+
+if(MISDET){
+
+    rangerFilter( array(HelProp,entity(),Seat,MISSLE) )
+    local Rng = rangerOffset(200,MISSLE:toWorld(vec(0,0,0)),MISSLE:forward())
+
+    if(Rng:hit() && Rng:entity() != HelProp && Rng:entity() != Seat){
+        
+        #ifdef effect()
+        local Effectd = effect()
+    
+        Effectd:setOrigin(MISSLE:pos()),Effectd:setRadius(500),Effectd:play("Explosion"),MISSLE:propBreak(),MISSLE:propDelete(),MISSLE=noentity()
+        #endif
+        
+        MISDET = 0
+    }
+
+    MISSLE:setPos(MISSLE:toWorld(vec(100,0,0)))
+
+
+}
+
+if(!HelProp:isValid() | !Seat:isValid()) {
+
+    BREAKING = 1
+    #print(  HelProp:toLocal(owner():pos())  )
+
+}
+
+if(clk("bombcool")){
+
+    stoptimer("bombcool")
+        
+    Seat:driver():soundPlay(8,1,"buttons/button15.wav")
+
+    BOMBCOOL=1
+
+}
+
+if(changed(BREAKING) && BREAKING) {
+
+    Drv:setMaterial("")
+    
+    #ifdef effect()
+    Eff = effect()
+    Eff:setOrigin(HelProp:pos())
+    Eff:setRadius(5000)
+    
+    for(I = 0,10) {
+        Eff:setOrigin(HelProp:pos() + randvec(1,50))
+        Eff:play("Explosion")
+    }
+    #endif
+
+    local BreakPos = Seat:pos()
+    local BreakVel = Vel
+    #local M = HelProp:mass()
+    
+    HelProp:propDelete()
+    holoDelete(1)
+    Seat:propDelete()
+
+    BreakParts = array(propSpawn("models/gibs/helicopter_brokenpiece_04_cockpit.mdl",BreakPos,0),
+    propSpawn("models/gibs/helicopter_brokenpiece_05_tailfan.mdl",BreakPos,0),
+    propSpawn("models/gibs/helicopter_brokenpiece_06_body.mdl",BreakPos,0),
+    propSpawn("models/gibs/helicopter_brokenpiece_03.mdl",BreakPos,0) )
+    
+    foreach(K,Part:entity = BreakParts) {
+
+        Part:propMakePersistent(1)
+        Part:setMass(10000)
+        Part:applyForce( (randvec(-3000,3000) + Vel)*Part:mass()*0.25)
+        Part:setTrails(80,80,2,"trails/smoke",vec(0),255)
+        
+        if(!holoEntity(K+1):isValid()) {
+        
+            holoCreate(K+1,Part:pos() + Part:boxCenter())
+            holoAlpha(K+1,0)
+            holoParent(K+1,Part)
+            #ifdef entity:ignite()
+            holoEntity(K+1):ignite()
+            #endif
+        }else{
+        
+        holoUnparent(K+1)
+        holoPos(K+1,Part:pos() + Part:boxCenter())
+        holoParent(K+1,Part)
+        }
+        #ifdef entity:noCollide(array)    
+        Part:noCollide(BreakParts)
+        #endif
+    
+    }
+    
+    soundPurge()
+    
+}
+
+if(clk("misslecooldown")){
+
+    Seat:driver():soundPlay(6,1,"Buttons.snd3")
+
+    MISSCOOL = 1,stoptimer("misslecooldown")
+
+}
+
+if(BreakParts) {
+
+
+    foreach(K,Part:entity = BreakParts) {
+
+        if(Part:vel():length()<50) {Part:removeTrails()}
+        if(curtime()-Part:creationTime()>120) {
+            #ifdef effect()
+            Eff:setOrigin(Part:pos())
+            Eff:play("Explosion")
+            #endif
+            Part:propDelete()
+            BreakParts:remove(K)
+            print("Helicopter Done!")
+            selfDestruct()
+        }
+    
+    }
+
+
+}
+
+####
+####DMGCLK DEBUG
+####
+#ifdef dmgClk()
+if(dmgClk()) {
+    
+    if(dmgVictim() == Seat){
+        
+        Seat:setColor(vec(255))
+    
+    }else{
+        
+        if(dmgType() == "Explosive"){
+            Dam = dmgDamage()*12
+            ISEx=1
+        }else{
+            ISEx=0
+            Dam = dmgDamage()
+        }
+        
+        if(Dam>100 && randint(-1,1)){
+            local Efx = effect()
+            Efx:setOrigin(dmgPos())
+            Efx:setRadius(Dam/2000)
+            Efx:play("Sparks")
+            #endif
+        }
+        if(Health-Dam>0){
+        
+            Health-=Dam
+            HelProp:applyForce( -(dmgPos() - HelProp:pos())*HelProp:mass()*ISEx*1.5  )
+            HelProp:applyAngForce( (-(dmgPos() - HelProp:pos())*HelProp:mass()*ISEx*50.5):toAngle()  )
+        
+        }else{
+            BREAKING = 1
+        }
+    
+        if(Dam>50 | Health<1500){
+            printColor(vec(100) , "Chopper is at " , hsv2rgb(Health/(5600/300),1,1) , Health , vec(100) , " By ", teamColor(dmgAttacker():team()) , (dmgAttacker():name()!="" ? dmgAttacker():name()  : "NaN") , vec(100) , " for " ,vec(255,255,0), Dam + "vanilla dmg: " + dmgDamage(),vec(100), " using " ,vec(255,0,255), dmgAttacker():weapon():type() ,vec(100), " at ", vec(0,255,0), (HelProp:pos() - dmgPos()):toAngle():toString() )
+        }
+    
+    }
+}
+####
+####DMGCLK DEBUG
+####
+
+if(changed(Seat:driver()) | first()) {
+
+    if(Seat:driver()) {
+    
+        Seat:driver():setMaterial("Models/effects/vol_light001")
+        Drv = Seat:driver()
+        ACTIVE = 1
+        #ifdef noCollideAll(entity,number)
+        noCollideAll(HelProp,0)
+        #endif
+    }else{
+        
+        Drv:setMaterial("")
+        ACTIVE = 0
+        #ifdef noCollideAll(entity,number)
+        noCollideAll(HelProp,1)
+        #endif
+    
+    }
+
+
+
+}
+
+if(chatClk(owner()) & owner():lastSaid():explode(" "):string(1):lower() == "/die") {
+
+    hideChat(1)
+    
+    HelProp:soundPlay(5,1,"NPC_AttackHelicopter.CrashingAlarm1")
+    soundPitch(5,230)
+    
+    timer("die",1000)
+
+    Die = 1
+}
+
+if(Die) {
+    
+    if(clk("die")) {
+    
+        stoptimer("die")
+        Die = 0
+        
+        BREAKING = 1
+    
+    }
+
+}
+

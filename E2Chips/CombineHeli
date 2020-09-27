@@ -1,20 +1,20 @@
 @name Helicopter v1
-@persist [ACTIVE BREAKING SPEED MaxHP Health Dam Die MISDET]:number
-@persist [HelProp Seat Drv MISSLE]:entity
-@persist [Vel]:vector
-@persist [BreakParts Bombs]:array
-
-
-#ifdef effect()
-@persist Eff:effect
-#endif
-
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s
 # Notes --
 # Cancer helicopter that I made ages ago, but just didn't release.
 # I had another one in the making and I guess I thought I would've released that one, but eh this one is just better as of now
 # Blatant copy of haze_of_dream's combine helicopter
+# Do NOT try and learn from this, I got all the physics from gohidas' unofficial e2 wiki on the physics side.
+
+@persist [ACTIVE BREAKING SPEED MaxHP Health Dam Die MISDET]:number
+@persist [HelProp Seat Drv MISSLE]:entity
+@persist [Vel]:vector
+@persist [BreakParts Bombs]:array
+
+#ifdef effect()
+@persist Eff:effect
+#endif
 
 #Weapons
 @persist [Spread Dmg FireRate LoadGun MissCool Shots BombCooldown ForceBullet]:number

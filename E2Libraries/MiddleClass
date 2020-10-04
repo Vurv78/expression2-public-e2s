@@ -99,11 +99,11 @@ function table:init(V)
 }
 
 local Fruit = class("Fruit")
-Fruit:set("MinJewciness",56)
+Fruit:set("minsucciness",56)
 
-function number table:isJewcy()
+function number table:isSucculent() #haha funny
 {
-    return (This["sweetness",number]>This["MinJewciness",number])
+    return (This["sweetness",number]>This["minsucciness",number])
 }
 
 # Making a subclass
@@ -118,8 +118,8 @@ Apple:init(70)
 
 TheApple = Apple:new()
 
-print(TheApple:isJewcy())
+print(TheApple:isSucculent())
 
-print(TheLemon:isJewcy())
+print(TheLemon:isSucculent())
 
 

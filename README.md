@@ -4,7 +4,8 @@
 A collection of my public libraries/expression2 files.
 Feel free to leave me suggestions for e2s and libraries, and to commit when you feel something is needed.
 (363590853140152321) Here's my discord ID
-And don't forget to visit my website that some of these chips depend on!
+
+Here's my website, which is used for most of my http-based e2s like my image loader, multi-http request lib and more.
 https://vurv.pythonanywhere.com
 
 Also, to note before looking into my libraries: (LIBRARIES NOT CHIPS)

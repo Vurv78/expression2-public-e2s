@@ -128,9 +128,7 @@ if(!Drone & SpawnCooldown & changed(owner():keyPressed("O")) & owner():keyPresse
     holoCreate(3,Drone:toWorld(vec(-10,10,0)),vec(0.4))
     
     holoCreate(4,Drone:toWorld(vec(10,-10,0)),vec(0.4))
-#=============================================================================
-#DRONE BY VURV STEAM_0:0:95603716 DRONE IS FREE FOR EDIT JUST DONT TAKE CREDIT
-#=============================================================================
+    
     for(I = 1,4){
     
         holoCreate(I+4,holoEntity(I):pos(),vec(2))
@@ -221,10 +219,6 @@ if(dmgClk()){
 
 }
 
-#=============================================================================
-#DRONE BY VURV STEAM_0:0:95603716 DRONE IS FREE FOR EDIT JUST DONT TAKE CREDIT
-#=============================================================================
-
 if(chatClk(owner())){
 
     local Prefix = "/"
@@ -291,10 +285,6 @@ if(!first() & Drone & changed(Drone:isUnderWater())){
     
     
 }
-
-#=============================================================================
-#DRONE BY VURV STEAM_0:0:95603716 DRONE IS FREE FOR EDIT JUST DONT TAKE CREDIT
-#=============================================================================
 
 if(!first() & Drone & clk("underwater") & Drone:isUnderWater()){
     

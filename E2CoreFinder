@@ -9,18 +9,6 @@
 WIREMOD_LINK = "https://github.com/wiremod/wire"
 Cores = table()
 
-function registerCore(Name:string){
-    Cores[Name,array] = array("No description provided.","No addon link provided.")
-}
-
-function registerCore([Name Desc]:string){
-    Cores[Name,array] = array(Desc,"No addon link provided.")
-}
-
-function registerCore([Name Desc Link]:string){
-    Cores[Name,array] = array(Desc,Link)
-}
-
 #ifdef propSpawnUndo(number)
     Cores["propcore",array] = array(
         "Allows you to manipulate props",

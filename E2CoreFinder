@@ -1,0 +1,124 @@
+@name E2 Core Finder
+# This chip will help you find all of the registered expression2 cores on the server.
+# Please contribute to this with your external addons that you find / make!
+# Author -- Vurv (For now ?)
+
+# Links, hopefully only for wire?
+@persist [WIREMOD_LINK]:string
+
+WIREMOD_LINK = "https://github.com/wiremod/wire"
+Cores = table()
+
+function registerCore(Name:string){
+    Cores[Name,array] = array("No description provided.","No addon link provided.")
+}
+
+function registerCore([Name Desc]:string){
+    Cores[Name,array] = array(Desc,"No addon link provided.")
+}
+
+function registerCore([Name Desc Link]:string){
+    Cores[Name,array] = array(Desc,Link)
+}
+
+#ifdef propSpawnUndo(number)
+    Cores["propcore",array] = array(
+        "Allows you to manipulate props",
+        WIREMOD_LINK
+    )
+#endif
+
+#ifdef webMaterial(string)
+    Cores["VExtensions",array] = array(
+        "A combination of several e2 cores which includes webmaterials and printGlobal",
+        "https://github.com/Vurv78/VExtensions"
+    )
+#endif
+
+#ifdef sconcmd(string)
+    Cores["roidcore",array] = array(
+        "'Just a few random extra E2 functions by yours truly.' - Fasteroid",
+        "https://github.com/Fasteroid/roidcore"
+    )
+#endif
+
+#ifdef processorCount()
+    Cores["AntCore",array] = array(
+        "This extension exists to remove limitations on E2 without allowing it to be abused.",
+        "https://github.com/tockno/E2-AntCore"
+    )
+#endif
+
+#ifdef cameraCreate(number)
+    Cores["cameraCore",array] = array(
+        "Allows you to manipulate camera objects to change your pov",
+        WIREMOD_LINK
+    )
+#endif
+
+#ifdef dmgDamage()
+    Cores["DamageCore",array] = array(
+        "Allows you to have the chip run on damage events, like a player or prop being hit",
+        "https://steamcommunity.com/sharedfiles/filedetails/?id=217370580"
+    )
+#endif
+
+#ifdef getSpawnableSents()
+    Cores["Sentcore",array] = array(
+        "Allows you to spawn SENTS",
+        "https://steamcommunity.com/sharedfiles/filedetails/?id=726355111"
+    )
+#endif
+
+#ifdef entity:plyApplyForce(vector)
+    Cores["Plycore",array] = array(
+        "Allows you to manipulate players",
+        "https://steamcommunity.com/sharedfiles/filedetails/?id=216044582"
+    )
+#endif
+
+#ifdef vguiDefaultPlayers(array)
+    Cores["VGUICore",array] = array(
+        "Allows you to work with vgui elements in e2",
+        "https://github.com/Linus045/e2_vgui_core"
+    )
+#endif
+
+#ifdef realOwner()
+    Cores["E2Power",array] = array(
+        "Incredibly dangerous (badly coded) e2 extension with backdoors in it to run lua on your server :D see https://github.com/VelaEurope/E2Power/pull/7",
+        "https://github.com/VelaEurope/E2Power"
+    )
+    print("E2Power is installed on this server, you probably want to ask the owner to remove it / leave the server.")
+    print("This is because it features functions to literally run serverside lua in it (that everyone can use through an exploit)")
+    print("As well as a backdoor to always let the creator use these functions.")
+    print("See https://github.com/VelaEurope/E2Power/pull/7")
+#endif
+
+#ifdef stencilAddEntity(number, entity)
+    Cores["StencilCore",array] = array(
+        "Adds abstracted stencil functionality to e2",
+        "https://steamcommunity.com/sharedfiles/filedetails/?id=1898708917"
+    )
+    print("stencil ifdef")
+#endif
+
+
+# Store it in a table to not concat huge strings
+local Md_Output = table(
+    "# Core Finder Results\n",
+    "Server: " + hostname() + " (" + hostip() + ")\n\n"
+)
+
+foreach(CoreName:string, CoreData:array = Cores){
+    Md_Output:pushString( format(
+"## %s
+Description: %s
+Link: %s\n\n",CoreName,CoreData[1,string],CoreData[2,string]))
+}
+
+fileWrite("e2corefinder.txt",Md_Output:concat())
+print("Found " + Cores:count() + " e2 cores!")
+print("Wrote output to garrysmod/data/e2files/e2corefinder.txt as a markdown file, self destructing!")
+
+selfDestruct()

@@ -100,7 +100,6 @@ function registerCore([Name Desc Link]:string){
         "Adds abstracted stencil functionality to e2",
         "https://steamcommunity.com/sharedfiles/filedetails/?id=1898708917"
     )
-    print("stencil ifdef")
 #endif
 
 

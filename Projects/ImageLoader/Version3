@@ -10,6 +10,7 @@ if(first()){
     # Fastest Image Loader https://github.com/Vurv78/expression2-public-e2s
     # Links have to be on pythonanywhere's whitelist (https://www.pythonanywhere.com/whitelist)
     # The API given auto-scales the image for you to 1:1 ratio
+    # Stick this chip onto a digiscreen
     
     #------CONFIGS------#
     Res          = 128   # Width&Height as one integer

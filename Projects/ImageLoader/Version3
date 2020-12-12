@@ -16,7 +16,7 @@ if(first()){
     Res          = 128   # Width&Height as one integer
     CPUMax       = 4000  # 2k or higher
     OPSMax       = 10000 # ~10k
-    URL          = "https://i.ytimg.com/vi/O0PLdJZFnPU/mqdefault.jpg"
+    URL          = "https://i.imgur.com/Bf1dXHv.jpg"
     BlackNWhite  = 0     # Grayscale Image
     Invert       = 0
     #------CONFIGS------#

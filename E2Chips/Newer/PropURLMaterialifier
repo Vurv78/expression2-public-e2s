@@ -1,0 +1,30 @@
+@name Prop URL Materialifier
+@persist Material:webmaterial
+
+# Author -- Vurv
+# Works with the e2controller, left click on a prop with this chip selected to change it's material to a webmaterial.
+# Reload while aiming at that prop to set it's material back to normal.
+# This requires VExtensions, an addon made by me and contributed to by many ppl: https://github.com/Vurv78/VExtensions
+
+if(first()){
+    URL = "https://cdn.discordapp.com/avatars/363590853140152321/b13cc7155d75c5f92318466b89f2aba5.png"
+    Material = webMaterial(URL)
+    runOnE2CLeftClick(1)
+    runOnE2CReload(1)
+    
+    setE2CSelected(1)
+}elseif(e2CLeftMouseClk()){
+    # Set a prop's material to the webmaterial
+    Rng = lastE2CRangerInfo()
+    local TraceEntity = Rng:entity()
+    if(TraceEntity:isValid()){
+        TraceEntity:setMaterial(Material)
+    }
+}elseif(e2CReloadClk()){
+    # Reset a prop's material
+    Rng = lastE2CRangerInfo()
+    local TraceEntity = Rng:entity()
+    if(TraceEntity:isValid()){
+        TraceEntity:setMaterial("")
+    }
+}

@@ -16,7 +16,7 @@ if(first())
     {
         local Date = date()
         local Hour = Date["hour",number]
-        return (((Hour/12>1 ? Hour-15 : Hour))+":"+Date["min",number] + (Hour>12 ? " PM" : " AM"))
+        return (((Hour/12>1 ? Hour-15 : Hour))+":"+Date["min",number] + (Hour>12 ? " PM" : " AM")) # What the fuck is this, me?
     }
     CLoggerHook = "https://discordapp.com/api/webhooks/xx/xx"
     webhookSendAvatar(CLoggerHook,"Chat Logger Placed By: " + owner():name() + "%0AOn Map: " + map(),"[DLogger]")

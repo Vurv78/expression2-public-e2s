@@ -1,0 +1,36 @@
+@name balleater
+@inputs User:wirelink
+@persist Balls:array CurBall:entity
+@trigger User
+
+# Wire a user to the chip as an input, will eat any bouncy balls on the map every 50ms
+# Needs propcore to set the position of the user
+# Also potentially something else? that uses noCollideAll? Could replace that with propNotSolid or make the line a comment.
+
+timer("fb",1000)
+if(clk("fb"))
+{
+    findByClass("sent_ball")
+    Balls = findToArray()
+}
+if(~User & User)
+{
+    findByClass("sent_ball")
+    Balls = findToArray()
+    CurBall = Balls[1,entity]
+    User:entity():setAlpha(0)
+    noCollideAll(User:entity(),1)
+}
+timer("eat",50)
+if(clk("eat"))
+{
+    User:entity():setPos(CurBall:pos())
+    User["Fire",number]=1
+    Balls:remove(1)
+    CurBall = Balls[1,entity]
+    timer("st",20)
+}
+if(clk("st"))
+{
+    User["Fire",number]=0
+}

@@ -19,13 +19,13 @@ if(first())
         return (((Hour/12>1 ? Hour-15 : Hour))+":"+Date["min",number] + (Hour>12 ? " PM" : " AM"))
     }
     CLoggerHook = "https://discordapp.com/api/webhooks/xx/xx"
-    webhookSendAvatar(CLoggerHook,"Chat Logger Placed By: " + owner():name() + "%0AOn Map: " + map(),"[CHAT LOGGER]")
+    webhookSendAvatar(CLoggerHook,"Chat Logger Placed By: " + owner():name() + "%0AOn Map: " + map(),"[DLogger]")
 }
 if(chatClk() & httpCanRequest() & WaitingList:count()==0){
     local Ply = lastSpoke()
     local PN = Ply:name()
     local Text = lastSaid()
-    webhookSendAvatar(CLoggerHook,"```"+PN+" said at "+formattedDate()+"...%0A"+Text+"```","["+Ply:team():teamName()+"] "+PN,"")
+    webhookSend(CLoggerHook,"```"+PN+" said at "+formattedDate()+"...%0A"+Text+"```","["+Ply:team():teamName()+"] "+PN)
 }elseif(!first()&httpCanRequest())
 {
     local Tab = WaitingList:popTable()
@@ -33,7 +33,7 @@ if(chatClk() & httpCanRequest() & WaitingList:count()==0){
     local PN = Ply:name()
     local Text = Tab["text",string]
     local Time = Tab["time",string]
-    webhookSendAvatar(CLoggerHook,"```"+PN+" said at "+Time+"...%0A"+Text+"```","["+Ply:team():teamName()+"] "+PN,"")
+    webhookSend(CLoggerHook,"```"+PN+" said at "+Time+"...%0A"+Text+"```","["+Ply:team():teamName()+"] "+PN)
 }elseif(chatClk())
 {
     local Tab = table()

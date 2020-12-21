@@ -1,0 +1,48 @@
+@name CL
+@persist CLoggerHook:string WaitingList:table
+
+# Author -- Vurv
+# Just logs chat and sends it to a discord webhook using my webserver as a proxy, since gmod requests to discord are blocked.
+
+if(first())
+{
+    WaitingList=table()
+    runOnChat(1)
+    function void webhookSend([WB Text Name]:string)
+    {
+        httpRequest("https://vurv.pythonanywhere.com/query?name="+Name+"&content="+Text+"&webhook="+WB)
+    }
+    function string formattedDate()
+    {
+        local Date = date()
+        local Hour = Date["hour",number]
+        return (((Hour/12>1 ? Hour-15 : Hour))+":"+Date["min",number] + (Hour>12 ? " PM" : " AM"))
+    }
+    CLoggerHook = "https://discordapp.com/api/webhooks/xx/xx"
+    webhookSendAvatar(CLoggerHook,"Chat Logger Placed By: " + owner():name() + "%0AOn Map: " + map(),"[CHAT LOGGER]")
+}
+if(chatClk() & httpCanRequest() & WaitingList:count()==0){
+    local Ply = lastSpoke()
+    local PN = Ply:name()
+    local Text = lastSaid()
+    webhookSendAvatar(CLoggerHook,"```"+PN+" said at "+formattedDate()+"...%0A"+Text+"```","["+Ply:team():teamName()+"] "+PN,"")
+}elseif(!first()&httpCanRequest())
+{
+    local Tab = WaitingList:popTable()
+    local Ply = Tab["player",entity]
+    local PN = Ply:name()
+    local Text = Tab["text",string]
+    local Time = Tab["time",string]
+    webhookSendAvatar(CLoggerHook,"```"+PN+" said at "+Time+"...%0A"+Text+"```","["+Ply:team():teamName()+"] "+PN,"")
+}elseif(chatClk())
+{
+    local Tab = table()
+    Tab["player",entity]=lastSpoke()
+    Tab["text",string]=lastSaid()
+    Tab["time",string]=formattedDate()
+    WaitingList:pushTable(Tab)
+    timer("chkwaiting",1000)
+}
+if(WaitingList:count()>0){timer("chkwaiting",1000)}
+
+

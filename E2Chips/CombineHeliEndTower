@@ -1,0 +1,219 @@
+@name End Towers
+@persist [Models]:array
+@persist [Model]:string
+@persist [Target CrystalBlock Cylinder Cap]:entity
+@persist Dmg Health Height I Num
+@persist [Healing]:gtable
+
+# An e2 that spawns an end tower where you place it down. It is meant to be used with the CombineHeli, to heal it.
+# Author -- Vurv
+# Once again another blatant ripoff of haze
+
+if(first()){
+
+    runOnTick(1)
+    runOnLast(1)
+    
+    Health = 300
+
+    propSpawnUndo(0)
+    rangerPersist(1)
+    Models = array("models/hunter/tubes/tube4x4x16.mdl","models/hunter/tubes/tube4x4x6.mdl","models/hunter/tubes/tube4x4x8.mdl","models/hunter/tubes/tube4x4x16.mdl")
+
+    Model = Models[randint(1,Models:count()),string]
+    
+    if(Model == Models[1,string] & randint(0,1)){
+        UPPos=330
+    }else{
+        UPPos=120
+    }
+    
+    entity():setPos(vec(0,0,-10))
+    Cylinder = propSpawn(Model,entity():toWorld(vec(0,0,UPPos)),entity():angles(),1)
+    Cap = propSpawn("models/hunter/tubes/circle4x4.mdl",Cylinder:toWorld(vec(0,0,Cylinder:boxMax():z())),entity():angles(),1)
+
+
+    CrystalBlock = propSpawn("models/hunter/blocks/cube2x2x05.mdl",Cap:toWorld(vec(0,0,13.5)),entity():angles(),1)
+    
+    Cap:propMakePersistent(1)
+    CrystalBlock:propMakePersistent(1)
+    Cylinder:propMakePersistent(1)
+    
+    Cylinder:setColor(vec(0))
+    Cap:setColor(vec(0))
+    CrystalBlock:setColor(vec(50))
+    
+    Cylinder:setMaterial("models/debug/debugwhite")
+    Cap:setMaterial("models/debug/debugwhite")
+    CrystalBlock:setMaterial("models/debug/debugwhite")
+
+    holoCreate(1,CrystalBlock:toWorld(vec(0,0,60)),vec(0.6),ang(),vec(255,0,255),"models/hunter/blocks/cube1x1x1.mdl")
+    holoMaterial(1,"models/debug/debugwhite")
+    
+    holoCreate(2,CrystalBlock:toWorld(vec(25,0,60)),vec(1),ang(),vec(255),"models/props_phx/construct/metal_wire1x1x1.mdl")
+    holoMaterial(2,"models/debug/debugwhite")
+    holoAlpha(2,150)
+    
+    holoCreate(3,CrystalBlock:toWorld(vec(25,0,60)),vec(1),ang(),vec(255),"models/props_phx/construct/metal_wire1x1x1.mdl")
+    holoMaterial(3,"models/debug/debugwhite")
+    holoAlpha(3,150)
+    
+    holoCreate(4,CrystalBlock:toWorld(vec(0,0,15)),vec(1,1,0.5),CrystalBlock:angles(),vec(113, 89, 124),"models/hunter/blocks/cube1x1x1.mdl")
+    holoMaterial(4,"models/debug/debugwhite")
+    
+    holoCreate(5,CrystalBlock:toWorld(vec(0,0,20)),vec(5,5,0.1))
+    holoAlpha(5,0)
+    
+    holoParent(4,CrystalBlock)
+    
+    holoParent(1,CrystalBlock)
+    holoParent(2,1)
+    holoParent(3,1)
+    
+    local Hitbox = propSpawn("models/hunter/blocks/cube1x1x1.mdl",CrystalBlock:toWorld(vec(0,0,70)),CrystalBlock:angles(),1)
+    Hitbox:setAlpha(0)
+    runOnDmg(1,Hitbox)
+    Hitbox:propMakePersistent(1)
+    
+    Num=0.4
+    Height=60
+    
+    holoEntity(5):ignite()
+    
+    holoCreate(6)
+    holoModel(6,"models/hunter/misc/cone2x2.mdl")
+    holoVisible(6,players(),0)
+    holoMaterial(6,"models/alyx/emptool_glow")
+
+    runOnDmg(1,CrystalBlock)
+    CrystalBlock:parentTo(Cylinder)
+    
+    Healing = gTable("endtower")
+    
+    Healing["Pos",vector] = CrystalBlock:pos()
+    Healing["Ent",entity] = CrystalBlock
+    
+    rangerFilter( array(entity(),CrystalBlock,Cylinder,Cap) )
+    
+}
+
+if(Cylinder:getColor()!=vec(0)){
+    Cylinder:setColor(vec(0))
+}
+if(Cap:getColor()!=vec(0)){
+    Cap:setColor(vec(0))
+}
+
+if(last()){
+
+    Healing["Hit",number]=0
+
+}
+
+if(Healing["Target",entity] & Healing["MaxHP",number]!=1){
+    
+    local Target = Healing["Target",entity]
+    local Pos = Target:pos()
+    local Ranger = rangerOffset(2000,holoEntity(1):pos(),Pos- holoEntity(1):pos())
+
+    #holoEntity(6):soundPlay(2,inf(),"SuitRecharge.ChargingLoop")
+    #soundPitch(6,63)
+    
+    if(changed(!Ranger:hitWorld() &  Target:pos():distance(CrystalBlock:pos())<2000) & !Ranger:hitWorld() &  Target:pos():distance(CrystalBlock:pos())<2000){
+        Target:soundPlay(2,inf(),"SuitRecharge.ChargingLoop")
+        soundPitch(2,63)
+        
+        holoEntity(6):soundPlay(3,inf(),"SuitRecharge.ChargingLoop")
+        soundPitch(3,63)
+    }
+    
+    if(!Ranger:hitWorld() &  Target:pos():distance(CrystalBlock:pos())<2000){
+            
+        Healing["Hit",number]=1
+        holoVisible(6,players(),1)
+        Dir = Target:pos() - holoEntity(1):pos()
+        holoPos(6,holoEntity(1):toWorld( (Dir):normalized()*50) )
+        holoAng(6, (Dir):toAngle()+ang(90,0,0) )
+        holoScale(6,vec(1,1,Pos:distance(holoEntity(1):pos())/95) )
+        
+    }else{
+    
+        soundStop(2)
+        soundStop(3)
+        holoVisible(6,players(),0)
+        Healing["Hit",number]=0
+    }
+
+}else{
+
+    soundStop(2)
+    soundStop(3)
+    holoVisible(6,players(),0)
+    Healing["Hit",number]=0
+
+    Target = Healing["Target",entity]
+
+}
+
+if(!dmgClk()){
+
+    I+=1
+    Height = (Height + Num)
+
+
+
+    if(changed(Height)){
+        if(Height>90){
+            Num = -Num
+        }elseif(Height<60){
+            Num = -Num
+        }
+    }
+    
+    
+    #holoPos(1,CrystalBlock:toWorld(vec(0,0,Height)))
+    #holoPos(2,CrystalBlock:toWorld(vec(0,0,Height)))
+    #holoPos(3,CrystalBlock:toWorld(vec(0,0,Height)))
+
+    holoAng(1,CrystalBlock:toWorld(ang(I,I,I)) )
+    holoAng(2,CrystalBlock:toWorld(ang(I,I,I)) )
+    holoAng(3,CrystalBlock:toWorld(ang(I,I,I)+14) )
+
+}
+
+
+if(dmgClk()){
+    
+    soundStop(1)
+    
+    holoEntity(1):soundPlay(1,1,"Weapon_StunStick.Melee_Hit")
+    soundVolume(1,300)
+
+    if(dmgType()=="Explosive"){
+        Dmg=dmgDamage()*4
+    }else{
+        Dmg=dmgDamage()
+    }
+    Health=Health-Dmg
+    
+    local Effect = effect()
+    Effect:setOrigin(holoEntity(1):pos())
+    Effect:setRadius(5000)
+    Effect:setMagnitude(50)
+    Effect:play("ElectricSpark")
+
+    if(Health<=0){
+        local Effect = effect()
+        Effect:setOrigin(dmgPos())
+        Effect:setRadius(50)
+        Effect:play("Explosion")
+        
+        CrystalBlock:propDelete()
+        
+        for(I=3,5){holoDelete(I)}
+        
+        Healing["Dead",number] = 1
+        
+    }
+    
+}

@@ -1,0 +1,190 @@
+@name AntiSpam
+@persist [PropsOwned PropsPerSec PlayerProps]:table
+@persist Chip:entity
+@persist MaxPPS
+@persist [PotentialMinges]:array
+@persist [LOGS FileName]:string
+@model models/props_c17/consolebox03a.mdl
+
+# Author -- Vurv
+# This is an anti-spam / logging chip that sees who is pasting a lot of entities at once
+# Needs antcore, and a ton of other things that add runOnEntSpawn, etc.
+# Fkn minimodding scrub
+
+if(first()){
+    
+    Chip = entity()
+    MaxPPS = 4
+    LOGS = ""
+    local Date = date()
+    FileName = (Date["month",number]:toString() + "l" + Date["day",number]:toString() + "l" + Date["year",number]:toString())
+    #fileWrite("antispam/log/" + FileName + ".txt","Beginning of the log! Hello :)")
+    #print(FileName,"antispam/log/" + FileName + ".txt")
+    
+    Chip:setPos(entity():toWorld(vec(0,0,0)))
+    
+    local Pro = spawnProcessor(entity():toWorld(vec(0,0,8)),ang())
+    Pro:setModel("models/props_c17/consolebox03a.mdl")
+    Pro:parentTo(Chip)
+    Pro:setName("Extra Server")
+    entity():setMass(50000)
+    
+    runOnEntSpawn("prop_physics",1)
+    runOnChat(1)
+    runOnEntRemove("prop_physics",1)
+    
+    foreach(Key,Ply:entity = players()){
+        PlayerProps[Ply:steamID(),array] = array()
+    }
+    
+    findByClass("prop_physics")
+    Props = findToArray()
+    foreach(Key,Prop:entity = Props)
+    {
+        PlayerProps[Prop:owner():steamID(),array]:pushString(Prop:id():toString())
+    }
+    
+    function number entity:getPropCount()
+    {
+        if(This:type()!="player"){return 0}else{return PlayerProps[This:steamID(),array]:count()}
+    }
+    
+    function number entity:pps()
+    {
+        if(This:type()!="player"){return 0}else{return PropsPerSec[This:steamID(),number]}
+    }
+    
+    function void logthis(Text:string)
+    {
+        LOGS+=Text
+    }
+    
+    PotentialMinges = array()
+    foreach(Key,Targ:entity = players())
+    {
+        local Minge = findPlayerByName("superinsaino")
+        if(Targ==Minge){PotentialMinges:pushEntity(Targ)}
+        #Team = Targ:team()
+        #if(Team<26 & Team>23 ){PotentialMinges:pushEntity(Targ)}
+    }
+    PotentialMinges:pushEntity(findPlayerByName("Vurv"))
+    
+    timer("pps",1000)
+    timer("savelog",5000)
+    
+}
+
+if(clk("savelog"))
+{
+    fileAppend("antispam/log/" + FileName + ".txt",LOGS)
+    timer("savelog",5000)
+}
+
+if(clk("pps"))
+{
+        
+    for(I=1,players():count())
+    {
+        local StmID = players()[I,entity]:steamID()
+        PropsPerSec[StmID,number] = 0
+    }
+    
+    timer("pps",1000)
+}
+
+
+if(!first() &  (entSpawnClk() | entRemoveClk()) ){
+
+    
+    if(entSpawnClk()){
+        ENT = spawnedEnt()
+        ID = ENT:owner():steamID()
+        ENTID = ENT:id():toString()
+        Lookup = invert(PlayerProps[ID,array])
+        PropsPerSec[ID,number] = PropsPerSec[ID,number] + 1
+        
+        if(!Lookup:exists(ENTID))
+        {
+            PlayerProps[ID,array]:pushString(ENTID)
+        }
+        
+        logthis("\n " + ENT:owner():name() + " spawned entity " + ENT:model() + " [" + PropsPerSec[ID,number] + "]")
+        
+        foreach(Key,Ply:entity = players())
+        {
+            PPS = Ply:pps()
+            if(PPS>100)
+            { 
+                if(Ply:tool() == "advdupe2" | Ply:tool()=="duplicator"){
+                    Ply:printPlayer("Holy shit chill out with the large dupes!")
+                    print(Ply:name() + " is spawning a giant dupe.. [ " + PPS + " ] " + Ply:steamID())
+                    logthis(Ply:name() + " is spawning a huge dupe.. [" + PPS + "] " + Ply:steamID())
+                    #concmd("say !nolag")
+                    concmd("ulx cleanup \" "+Ply:name()+"\"")
+                }else{
+                    Ply:printPlayer("Stop the prop spam!!")
+                    print(Ply:name() + " is propspamming.. [ " + PPS + " ] " + Ply:steamID())
+                    logthis(Ply:name() + "is plain propspamming!!!! [" + PPS + "]" + Ply:steamID())
+                    concmd("say !nolag")
+                }
+            }elseif(PPS>MaxPPS){
+                
+                if(Ply:tool()!="advdupe2"&Ply:tool()!="duplicator")
+                {
+                    print(Ply:name() + " is spawning a lotta props.. [ " + PPS + " ] " + Ply:steamID())
+                    Ply:printPlayer("Chill with the prop spawning")
+                    logthis(Ply:name() + "is spawning a lotta props... [" + PPS + "]" + Ply:steamID())
+                    concmd("say !nolag")
+                }
+            }
+            
+            
+        }
+        
+    }elseif(entRemoveClk()){
+        ENT = removedEnt()
+        ID = ENT:owner():steamID()
+        ENTID = ENT:id():toString()
+        Lookup = invert(PlayerProps[ID,array])
+        
+        if(Lookup:exists(ENTID))
+        {
+            PlayerProps[ID,array]:remove(Lookup[ENTID,number])
+        }
+    }
+
+}
+
+if(chatClk(owner()))
+{
+    LS = owner():lastSaid():explode(" ")
+    if(LS[1,string]:sub(1,1)=="/")
+    {
+        hideChat(1)
+        
+        switch(LS[1,string])
+        {
+            case "/propcount",
+                Targ = findPlayerByName(LS[2,string]:lower())
+                print(Targ:name() + " has " + Targ:getPropCount() + " props")
+            break
+            
+            case "/pps",
+                Targ = findPlayerByName(LS[2,string]:lower())
+                print(Targ:name() + " has " + Targ:pps() + " props per sec")
+            break
+            
+            case "/ppsall",
+                print(PropsPerSec:values())
+            break
+            
+            case "/testtt",
+                print(fileStatus())
+            break
+            
+            default,
+                print("Invalid command!")
+            break
+        }
+    }
+}

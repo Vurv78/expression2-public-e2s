@@ -1,0 +1,190 @@
+@name Duplicator
+@persist Scale
+@persist [InCube]:array
+@persist [CurrentFile]:table
+
+# Author -- Vurv
+# Last modified ~2/4/2020 (Old)
+# A chip that lets you copy any props (even not owned by you) in a certain radius
+# How to use -- From my memory, just right click with a crowbar and a hologram box will appear before you, which tells you what you'll dupe.
+# Don't worry, these boxes are invisible to everyone else. Use the ?scale command to make it bigger, ?save to save the props in the box, ?load to set the currently loaded dupe to the file you give
+# ?paste to finally put the holos / props down.
+
+# The code to create props instead of holos is commented out, uncomment it if you want it. It's pretty much useless without something like antcore to add propSpawnAsync.
+# Same with holograms, I didn't implement an async function, so it only copies ~80 of the props.
+
+if(first()){
+
+    runOnFile(1)
+    runOnKeys(owner(),1)
+    runOnChat(1)
+    holoDeleteAll(1)
+    # propSpawnASync(1)
+    propSpawnUndo(0)
+    
+    # for(I=1,10){spawnProcessor(entity():toWorld(vec(0,0,10*I)),ang()):setName("Extra Juice")} (If you have antagonise-core and need to dupe a huge contraption.)
+    
+    Scale = 50
+    
+    holoCreate(1,vec(),vec(2))
+    holoVisible(1,players(),0)
+    holoVisible(1,owner(),1)
+    
+    for(I=2,9){holoCreate(I,vec(),vec(5)),holoVisible(I,players(),0),holoVisible(I,owner(),1)}
+    
+    function table objtotable(ENT:entity)
+    {
+        local Tbl = table()
+        Tbl["pos",vector] = ENT:pos()
+        Tbl["localpos",vector] = holoEntity(1):toLocal(ENT:pos())
+        Tbl["scale",vector] = ENT:boxSize()
+        Tbl["ang",angle] = ENT:angles()
+        Tbl["material",string] = ENT:getMaterial()
+        Tbl["model",string] = ENT:model()
+        Tbl["color4",vector4] = ENT:getColor4()
+        Tbl["frozen",number] = ENT:isFrozen()
+        Tbl["skin",number] = ENT:getSkin()
+        
+        return Tbl
+    }
+    
+    function string createfile(Props:array)
+    {
+        local Tabl = table()
+        
+        foreach(Key,Prop:entity = Props)
+        {
+            Tabl:pushTable(objtotable(Prop))
+        }
+        
+        return vonEncode(Tabl)
+    
+    }
+    
+    function vector tovector(InputVec:vector4)
+    {
+        
+        Vec = vec(InputVec[1],InputVec[2],InputVec[3])
+        return Vec
+    }
+
+}
+
+if(keyClk(owner())==1){
+    
+    KeyClked = keyClkPressed()
+    
+    M2 = KeyClked=="mouse_right"
+    
+    if(M2 & owner():weapon():type()=="weapon_crowbar"){
+        holoPos(1,owner():toWorld(vec(100,0,50)))
+        holoPos(2,holoEntity(1):toWorld(vec(10*Scale,10*Scale,10*Scale)))
+        holoPos(3,holoEntity(1):toWorld(vec(-10*Scale,10*Scale,10*Scale)))
+        holoPos(4,holoEntity(1):toWorld(vec(10*Scale,-10*Scale,10*Scale)))
+        holoPos(5,holoEntity(1):toWorld(vec(-10*Scale,-10*Scale,10*Scale)))
+        
+        holoPos(6,holoEntity(1):toWorld(vec(10*Scale,10*Scale,-10*Scale)))
+        holoPos(7,holoEntity(1):toWorld(vec(-10*Scale,10*Scale,-10*Scale)))
+        holoPos(8,holoEntity(1):toWorld(vec(10*Scale,-10*Scale,-10*Scale)))
+        holoPos(9,holoEntity(1):toWorld(vec(-10*Scale,-10*Scale,-10*Scale)))
+        
+        findIncludeClass("prop_physics")
+        findInBox(holoEntity(4):pos(),holoEntity(7):pos())
+        InCube = findToArray()
+    }
+}
+
+if(chatClk(owner()))
+{
+
+    LS = owner():lastSaid():explode(" ")
+    if(LS[1,string]:sub(1,1)=="?"){hideChat(1)}
+    
+    switch (LS[1,string])
+    {
+        case "?save",
+            local FileName = LS[2,string]
+            printColor(vec(100),"Wrote File to ",vec(200,100,100),"duplications/" + FileName,vec(100),".txt")
+            fileWrite("duplications/" + FileName + ".txt",createfile(InCube))
+        break
+        
+        case "?load",
+            local FileName = LS[2,string]
+            printColor(vec(100),"Loading File ",vec(200,100,100),"duplications/" + FileName,vec(100),".txt")
+            fileLoad("duplications/" + FileName + ".txt")
+        break
+        
+        case "?scale",
+            local Num = LS[2,string]:toNumber()
+            Scale = Num
+            printColor(vec(100),"Set scale to..",vec(100,200,100),Num)
+        break
+        
+        case "?paste",
+            switch(LS[2,string])
+            {
+                case "local",
+                    for(Key=1,CurrentFile:count())
+                    {
+                        
+                        local Table = CurrentFile[Key,table]
+                        local Size = LS[3,string]:toNumber()
+                        
+                        holoDelete(Key+9)
+                        holoCreate(Key+9,holoEntity(1):toWorld(Table["localpos",vector]*Size),vec(Size),Table["ang",angle],tovector(Table["color4",vector4]),Table["model",string])
+                        holoMaterial(Key+9,Table["material",string])
+                        holoSkin(Key+9,Table["skin",number])
+                        #[
+                        local Prop = propSpawn(Table["model",string],holoEntity(1):toWorld(Table["localpos",vector]),Table["ang",angle],Table["frozen",number])
+                        Prop:setSkin(Table["skin",number])
+                        Prop:setMaterial(Table["material",string])
+                        Prop:setColor(tovector(Table["color4",vector4]))
+                        ]#
+                    }
+                break
+                
+                case "world",
+                    for(Key=1,CurrentFile:count())
+                    {
+                        local Table = CurrentFile[Key,table]
+                        local Size = LS[3,string]:toNumber()
+                        print(Key+9)
+                        holoDelete(Key+9)
+                        holoCreate(Key+9,Table["pos",vector]*Size,vec(Size),Table["ang",angle],tovector(Table["color4",vector4]),Table["model",string])
+                        holoMaterial(Key+9,Table["material",string])
+                        holoSkin(Key+9,Table["skin",number])
+                    }
+                break
+                
+                default,
+                    print("Invalid parameter! Must use {local,world}")
+                break
+            
+            }
+            
+        break
+
+        case "?clear",
+            for(I=9,holoAmount()+9){holoDelete(I)}
+        break
+        
+        default,
+        
+        break
+    
+    
+    }
+
+}
+
+if(fileClk())
+{
+    File = fileRead()
+    To_vON = vonDecodeTable(File)
+    
+    printColor(vec(100),"Loaded File ",vec(200,100,100),fileName())
+    CurrentFile = To_vON
+
+}
+
+#if(changed(opcounter()) & opcounter()>10000){print(opcounter(),cpuUsage()*1000000)}

@@ -23,8 +23,7 @@ if(first()){
         if(!Hooks:exists(Hook)){error("hookAdd called with invalid hook --"+Hook)}
         local Data = HookTable["data",table]
         if(!Data:exists(ID)){ # Only add to the counter if the runOn* didn't exist. parity with hookRemove to not be able to break it
-            local TC = HookTable["counter",number]
-            TC = TC + 1
+            HookTable["counter",number] = HookTable["counter",number] + 1
         }
         HookTable["data",table][ID,string] = Func
         HookTable["call",string](1)
@@ -61,6 +60,7 @@ if(first()){
 }
 
 foreach(K:string,T:table = Hooks){
+    if(T["counter",number]==0){continue} # This hook isn't active.
     local CB = T["cb",string]
     if(CB()[number]){
         local Data = T["data",table]
@@ -70,4 +70,3 @@ foreach(K:string,T:table = Hooks){
         exit()
     }
 }
-

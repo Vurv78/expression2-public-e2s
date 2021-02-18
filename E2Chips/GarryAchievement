@@ -1,0 +1,69 @@
+@name Yes, I am the real garry!
+@persist Queue:table QueueLen QueueCO:coroutine
+@persist GarryAssigned:entity Earned:table
+
+# Author -- Vurv
+# Dependencies -- VExtensions / PrintGlobal (https://github.com/Vurv78/VExtensions)
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+
+# Waits for the next person to join after you place this down, and the chip acts as if that player was garry.
+# Sends a fake achievement using printGlobal to totally epic prank everyone into thinking that player was garry and gave everyone the achievement.
+# Also works on players that join after.
+
+if(first()){
+    runOnPlayerConnect(1)
+
+    function printGlobalQueue(R:array){
+        if(canPrintGlobal()){
+            printGlobal(players(),R)
+        }else{
+            Queue:pushArray(R)
+            QueueLen++
+        }
+    }
+
+    function handleQueue(){
+        while(1){
+            while(canPrintGlobal() & QueueLen){
+                printGlobal( players(), Queue:removeArray(1) )
+                QueueLen--
+            }
+            coroutineYield()
+        }
+    }
+
+    function giveGarry(Ply:entity){
+        local WHITE = vec(230)
+        local ACHV = vec(255,200,0)
+        local STEAMID = Ply:steamID()
+        if(Earned:exists(STEAMID)){ return }
+        Earned[STEAMID,number] = 1
+        printGlobalQueue(
+            array(
+                teamColor(Ply:team()),
+                Ply:name(),
+                WHITE,
+                " earned the achievement ",
+                ACHV,
+                "Yes, I am the real garry!"
+            )
+        )
+    }
+
+    QueueCO = coroutine("handleQueue")
+    timer("queue",200)
+    Earned = table()
+}elseif(playerConnectClk()){
+    local Ply = lastConnectedPlayer()
+    if(!GarryAssigned:isValid()){
+        foreach(K,V:entity = players()){
+            if(V!=Ply){ giveGarry(V) }
+        }
+        GarryAssigned = Ply
+    }elseif(Ply!=GarryAssigned){
+        giveGarry(Ply)
+    }
+}elseif(clkName()=="queue"){
+    QueueCO:resume()
+    timer("queue",200)
+}

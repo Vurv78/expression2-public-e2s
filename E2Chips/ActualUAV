@@ -1,0 +1,86 @@
+@name Actual UAV
+@inputs EGP:wirelink
+@persist [UAV]:entity
+@persist [AngPull Speed RngLength]:number
+@persist RotAng:angle
+@persist [Positions]:table
+
+# Source -- https://github.com/Vurv78/expression2-public-e2s
+# Author -- Vurv
+
+# Some jet prop that flies around the map, acts like the other UAV on this repo, but it's a jet moving around that doesn't take damage instead.
+
+interval(10)
+
+if(first()){
+
+    AngPull = 1
+    Speed = 2 #Multiplier
+    RngLength = 8000
+    
+    #EGP = spawnEgp("models/hunter/plates/plate2x2.mdl",entity():pos(),ang(),1):wirelink()
+
+    propSpawnUndo(0)
+    if(EGP){
+        entity():setPos(entity():toWorld(vec(0,0,-10)))
+    }
+    UAV = propSpawn("models/xqm/jetbody3_s2.mdl",entity():toWorld(vec(0,0,30)),entity():angles(),0)
+    UAV:setColor(vec(randint(40,100)))
+    UAV:propGravity(0)
+    
+    UAV:setTrails(30,30,1,"trails/smoke",vec(100),255)
+    
+    rangerPersist(1)
+    rangerFilter(UAV)
+    
+    RotAng = ang()
+    
+    UAV:soundPlay(1,inf(),"Phx.HoverLight")
+    
+    noCollideAll(UAV,1)#so we dont kill players
+
+}
+
+if(owner():keyZoom()){UAV:propFreeze(0)}
+
+if(changed(EGP)){
+    if(EGP){
+        entity():setPos(entity():toWorld(vec(0,0,-10)))
+    }else{
+        entity():setPos(entity():toWorld(vec(0,0,10)))
+    }
+}
+
+Ranger = rangerOffset(RngLength,UAV:pos(),UAV:right())
+Height = abs(-11519.968750 - UAV:pos()[3])
+
+if(Ranger:hit()){RotAng+=ang(1,1*((RngLength-Ranger:distance())/(RngLength)),0),Mul=((RngLength-Ranger:distance())/(RngLength/150))*Speed}else{Mul=20*Speed}
+
+if(Height<1500){RotAng+=ang(0,0,-1)}else{RotAng = RotAng:setRoll(0)}
+
+timer("soundplay",5000)
+
+soundPitch(1,UAV:vel():length())
+
+UAV:applyForce(UAV:right()*UAV:mass()*Mul - UAV:vel())
+UAV:applyTorque( ( ( (UAV:toLocalAxis(rotationVector(quat( RotAng )/quat(UAV)))) *200-UAV:angVelVector()*20)*UAV:inertia() ) *AngPull)
+
+foreach(Key,Ply:entity = players()){
+    
+    local Ranger = rangerOffset(100000,UAV:pos(),Ply:pos()-UAV:pos())
+    if(Ranger:entity() == Ply){
+        Positions[Ply:steamID(),vector] = Ply:pos()
+        
+        EGP:egpBox(Key,vec2(clamp(Ply:pos()[1]/50+200,0,500), clamp(Ply:pos()[2]/50+200,0,500) ),vec2(7.5))
+        EGP:egpColor(Key,teamColor(Ply:team()))
+        EGP:egpTextLayout(Key+20,Ply:name(),vec2(clamp(Ply:pos()[1]/50+200,0,500), clamp(Ply:pos()[2]/50+200,0,500) ),vec2(100,50))
+        EGP:egpFont(Key+20,"",12)
+    }
+
+}
+
+if(changed(UAV)){
+    if(!UAV){
+        selfDestructAll()
+    }
+}

@@ -3,7 +3,7 @@
 A collection of my public E2 libraries and chips.
 Make any issues for bugs you find, I might fix them. I don't care what you do with my e2 chips, just don't be a skid and claim it's your code.
 
-Some of these E2s use my webserver, here's the source: https://github.com/Vurv78/Webserver.
+Some of these E2s use my website, here's the source: https://github.com/Vurv78/Website.
 
 Also, to note before looking into my libraries: (LIBRARIES NOT CHIPS)
 Libraries in e2 are very inefficient. They have a flat 20 ops penalty for calling any user function once and they don't have syntax highlighting. I would not recommend getting used to using libraries such as the math or stringext ones I or anyone else have made as they really only provide small functionality you can do yourself without a userfunction. But if you don't care about OPS / efficiency, then go for it.

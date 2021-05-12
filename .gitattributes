@@ -1,0 +1,3 @@
+
+# Set .txt (E2 Files) to highlight as Golo
+*.txt linguist-language = Golo

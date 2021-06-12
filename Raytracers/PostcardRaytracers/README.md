@@ -1,10 +1,13 @@
 # Postcard Raytracers
 
 ## Comparison
-|                   | Version 1 | Version 2 |
-|-------------------|-----------|-----------|
-| Prop Colors       | No        | Yes       |
-| Sky Gradient      | No        | Yes       |
-| Shading Algorithm | Phong     | Phong     |
-| Prop Reflections  | No        | Yes       |
-| Character Count   | 627       | 628       |
+| Version          | #1 | #2 | #3 |
+|------------------|----|----|----|
+| Prop Colors      |❌|✔️|✔️|
+| Sky Gradient     |❌|✔️|✔️|
+| Shading          |Phong|Phong|Phong|
+| Prop Reflections |❌|✔️|✔️|
+| Error Free*      |✔️|✔️|❌|
+| Characters       |627|628|590|
+
+\* _This means that the chip will intentionally throw errors or have weird behavior to conserve space._

@@ -1,39 +1,57 @@
 @name Reflect
 @persist [Rangers Directions Props]:array
-@persist [RangerCount Thiccness]:number
+@persist [RangerCount Thick]:number
 @persist [RopeExists]:table
+@persist Chip:entity
+
 interval(300)
 
 # Author -- Vurv
 # Source -- https://github.com/Vurv78/expression2-public-e2s
-# Requires -- https://github.com/Vurv78/expression2-public-e2s/blob/master/e2-libs-general/library.hololine
 
 if(first()) {
-
-    #include "functions.hololine"
-    
-    rangerPersist(1)
-    rangerFilter(players())
-
-    RangerCount     =   100
-    Thiccness       =   0.05 #Thickness of lines
-    
-    function vector vector:reflect(HitNormal:vector){
-        return -(This:rotateAroundAxis(HitNormal,180))
-    }
-
-}
-    if(entity():vel():length()<20 && entity():angVelVector():length()<5){
-    Rangers[1,ranger] = rangerOffset(100000,entity():pos(),entity():up())
-    Directions[1,vector] = entity():up()
-    holoLine(1,entity():pos(),Rangers[1,ranger]:pos(),vec(255,255,255),vec2(Thiccness))
-    for(I = 1,RangerCount) {
-        Rangers[I+1,ranger] = rangerOffset(100000,Rangers[I,ranger]:pos(),Directions[I,vector] + Rangers[I,ranger]:hitNormal())
-        
-        Directions[I+1,vector] = (Directions[I,vector]:reflect(Rangers[I,ranger]:hitNormal()))
-        if(I!=1){
-            holoLine(I,Rangers[I-1,ranger]:pos(),Rangers[I,ranger]:pos(),I==RangerCount ? vec(0) : hsv2rgb((300/RangerCount)*I,1,1),vec2(Thiccness))
+    # From https://github.com/Vurv78/expression2-public-e2s/blob/master/E2Libraries/HoloLine.txt
+    function void holoLine(N, [Pos1 Pos2 Color]:vector, Radius){
+        local Direction = (Pos2-Pos1)
+        if( holoEntity(N):isValid() ){
+            holoReset( N, "models/holograms/hq_tube.mdl", vec(1), Color, "models/debug/debugwhite" )
+            holoPos( N, Pos1 + Direction/2 )
+            holoAng( N, Direction:toAngle() + ang(90,0,0) )
+            holoScaleUnits( N, vec( Radius, Radius, Direction:length() ) )
+        }else{
+            holoCreate( N, Pos1, vec(1), (Pos2-Pos1):toAngle(), Color, "models/hunter/tubes/tube1x1x8.mdl" )
+            holoMaterial( N,"models/debug/debugwhite" )
+            holoScaleUnits( N, vec( Radius, Radius, Direction:length() ) )
         }
     }
+
+    rangerPersist(1)
+    rangerHitWater(1)
+    rangerFilter(players())
+
+    Chip = entity()
+    RangerCount     =   70
+    Thick           =   2 # Thickness of lines
+
+    function vector vector:reflect(HitNormal:vector){
+        # ''This'' is the direction. https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector#13263
+        return This - 2 * (This:dot(HitNormal)) * HitNormal
+        #Old Equation return -(This:rotateAroundAxis(HitNormal,180))
     }
 
+} elseif (Chip:vel():length()<20 && Chip:angVelVector():length()<5) {
+    Rangers[1,ranger] = rangerOffset( 1e9, Chip:pos(), Chip:up() )
+    Directions[1,vector] = Chip:up()
+    holoLine( 1, Chip:pos(), Rangers[1,ranger]:pos(), vec(255,255,255), Thick )
+
+    for(I = 1, RangerCount) {
+        Rangers[I+1,ranger] = rangerOffset( 1e9, Rangers[I,ranger]:pos(), Directions[I,vector] + Rangers[I,ranger]:hitNormal() )
+
+        Directions[I+1,vector] = ( Directions[I,vector]:reflect(Rangers[I,ranger]:hitNormal()) )
+        if(I != 1){
+            # Last color is black for the first ranger, for the rest it's rainbow.
+            local Color = I==RangerCount ? vec(0) : hsv2rgb( (300/RangerCount)*I, 1, 1 )
+            holoLine(I, Rangers[I-1,ranger]:pos(), Rangers[I,ranger]:pos(), Color, Thick )
+        }
+    }
+}

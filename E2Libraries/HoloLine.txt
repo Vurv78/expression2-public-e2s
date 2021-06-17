@@ -1,19 +1,19 @@
 @name Hololine Function
 # Author -- Vurv
-# Updated -- 7/4/2020 (Not Shit Like Before)
+# Updated -- 6/16/2021
 # Source -- https://github.com/Vurv78/expression2-public-e2s
-if(first())
-{
-    function void holoLine(N,[Pos1 Pos2 Color]:vector,Radius){
-        if(holoEntity(N):isValid()){
-            holoReset(N,"models/hunter/tubes/tube1x1x8.mdl",vec(1),Color,"models/debug/debugwhite")
-            holoPos(N,Pos1)
-            holoAng(N,(Pos2-Pos1):toAngle()+ang(90,0,0))
-            holoScaleUnits(N,vec(Radius,Radius,owner():pos():distance(Pos1)))
-        }else{
-            holoCreate(N,Pos1,vec(1),(Pos2-Pos1):toAngle()+ang(90,0,0),Color,"models/hunter/tubes/tube1x1x8.mdl")
-            holoMaterial(N,"models/debug/debugwhite")
-            holoScaleUnits(N,vec(Radius,Radius,owner():pos():distance(Pos1)))
+if(first()) {
+    function void holoLine(N, [Pos1 Pos2 Color]:vector, Radius) {
+        local Direction = (Pos2-Pos1)
+        if( holoEntity(N):isValid() ){
+            holoReset( N, "models/holograms/hq_tube.mdl", vec(1), Color, "models/debug/debugwhite" )
+            holoPos( N, Pos1 )
+            holoAng( N, Direction:toAngle() + ang(90,0,0) )
+            holoScaleUnits( N, vec( Radius, Radius, Direction:length() ) )
+        } else {
+            holoCreate( N, Pos1, vec(1), Direction:toAngle(), Color, "models/holograms/hq_tube.mdl" )
+            holoMaterial( N,"models/debug/debugwhite" )
+            holoScaleUnits( N, vec( Radius, Radius, Direction:length() ) )
         }
     }
 }

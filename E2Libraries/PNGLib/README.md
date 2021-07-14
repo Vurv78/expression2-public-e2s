@@ -1,6 +1,28 @@
-### PNGLib by Vurv in E2, made off of https://github.com/wyozi/lua-pngencoder/
+### PNGLib
+Originally transpiled from https://github.com/wyozi/lua-pngencoder  
+However it has been **heavily** modified to be efficient and work for E2.
 
-## How to use (Version 1.2):
+## What's new
+Version 1.3 overhauls the code a lot.
+A lot of boilerplate code was removed in an attempt to lower ops, and I am proud to say it worked.
+
+Went from ``25351 OPS -> 15897 OPS`` with this piece of code, pretty good:
+```golo
+P = createPNG(2, 2, "rgb")
+P:writeRGBFast(255, 0, 0)
+P:writeRGBFast(0, 255, 0)
+P:writeRGBFast(0, 0, 255)
+P:writeRGBFast(255, 255, 255)
+print(P:done())
+P:export("test.png")
+
+print( opcounter() )
+```
+A cool goal would be to get this to be able to run in less than 10k ops for a 2x2 image, so it can be used on normal servers...
+
+Version 1.3 doesn't check if a table has the png field set. This may cause some confusion in debugging if you somehow call it on some random tables, but it was necessary for a perf boost. The RGB type is also ignored, but only in the functions that contain *fast* in their names.
+
+## How to use (Version 1.2+):
 ```golo
 P = createPNG(2,2,"rgb") # Third argument is optional
 P:writeVectorFast(vec(255,0,0))
@@ -37,20 +59,10 @@ More @https://github.com/Vurv78/expression2-public-e2s
 
 ## Functions that return **void**
 
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = putBigUint32(Val ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), Tbl ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png), Index ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
- Internal function used by the image library. Do not use this!
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeBytes(Data ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png))
- Internal function used by the image library. Do not use this!
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):adler32(Data ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png), Index ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), Len ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
- Internal function used by the image library. Do not use this!
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeBytes(Data ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png),  Index ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png),  Len ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
- Internal function used by the image library. Do not use this!
 ### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):export(FilePath ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-String.png))
  Exports the png data to a filepath given (FilePath)
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):write(Pixels ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png))
- Manual mode to write to a png image, I wouldn't use this if I were you.
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeBytes(Data ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png), Index ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
- Internal function used by the image library. Do not use this!
+### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):pngWriteRaw(Pixels ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png))
+ Manual mode to write to a png image, this is 20 ops cheaper per call than the write* helper functions. However you should make sure your color mode is the same as well as that your object is really a PNG. It's unsafe in order to be cheap.
 ### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeRGBA(R ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), G ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), B ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), A ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
  Write RGBA Pixel (Make sure your png is rgba mode or it won't work)
 ### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeVector4(V ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Vector4.png))
@@ -59,8 +71,6 @@ More @https://github.com/Vurv78/expression2-public-e2s
  Write RGB Vector Fast (Doesn't round for you, can lead to image corruption if given decimals!) (Make sure your png is rgb mode or it won't work)
 ### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeRGBAFast(R ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), G ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), B ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), A ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
  Write RGBA Pixel Fast (Doesn't round for you, can lead to image corruption if given decimals!) (Make sure your png is rgba mode or it won't work)
-### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):crc32(Data ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png),  Index ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png),  Len ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))
- Internal function used by the image library. Do not use this!
 ### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeVector(V ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Vector.png))
  Write RGB Vector (Make sure your png is rgba mode or it won't work)
 ### ![Void](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Void.png) = ![Table](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Table.png):writeRGBFast(R ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), G ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png), B ![](https://raw.githubusercontent.com/wiki/wiremod/wire/Type-Number.png))

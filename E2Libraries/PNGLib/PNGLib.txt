@@ -271,8 +271,8 @@ P:writeRGBFast(0, 255, 0)
 P:writeRGBFast(0, 0, 255)
 P:writeRGBFast(255, 255, 255)
 
-print( P["done", number] )
+#print( P["done", number] )
 
 P:export("out.png")
 
-print( opcounter() )
+#print( opcounter() )

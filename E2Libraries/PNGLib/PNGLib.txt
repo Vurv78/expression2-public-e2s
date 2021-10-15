@@ -4,33 +4,34 @@
 # Author -- Vurv
 # Version -- 1.3
 
+NULL_CHAR = toChar(0)
 DEFLATE_MAX_BLOCK_SIZE = 65535
 
 function putBigUint32(Val, Tbl:table, Index) {
     Tbl[Index, number] = bAnd( bShr(Val, 24), 255)
-    Tbl[Index+1, number] = bAnd( bShr(Val, 16), 255)
-    Tbl[Index+2, number] = bAnd( bShr(Val, 8), 255)
-    Tbl[Index+3, number] = bAnd( bShr(Val, 0), 255)
+    Tbl[Index + 1, number] = bAnd( bShr(Val, 16), 255)
+    Tbl[Index + 2, number] = bAnd( bShr(Val, 8), 255)
+    Tbl[Index + 3, number] = bAnd( bShr(Val, 0), 255)
 }
 
-function table:pngWriteBytes(Data:table, Index, Len) {
+function pngWriteBytes([Output Data]:table, Index, Len) {
     for (I = Index, Index + Len - 1) {
-        This["output",table]:pushString( toChar( Data[I, number] ) )
+        Output:pushString( toChar( Data[I, number] ) )
     }
 }
-function table:pngWriteBytes(Data:table, Index) {
+function pngWriteBytes([Output Data]:table, Index) {
     for(I = Index, Index + Data:count() - 1){
-        This["output",table]:pushString( toChar( Data[I, number] ) )
+        Output:pushString( toChar( Data[I, number] ) )
     }
 }
-function table:pngWriteBytes(Data:table) {
+function pngWriteBytes([Output Data]:table) {
     for(I = 1, Data:count()) {
-        This["output",table]:pushString(toChar( Data[I, number] ))
+        Output:pushString(toChar( Data[I, number] ))
     }
 }
 
-function table:pngCRC32(Data:table, Index, Len){
-    local CRC = bNot(This["crc", number])
+function number pngCRC32(Data:table, Index, Len, CRC){
+    CRC = bNot(CRC)
     for(I = Index, Index + Len - 1) {
         local Byte = Data[I, number]
         # Unfolded for loop between 0,7
@@ -43,35 +44,53 @@ function table:pngCRC32(Data:table, Index, Len){
         CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 6) ), 1 ), 0xEDB88320 ) )
         CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 7) ), 1 ), 0xEDB88320 ) )
     }
-    This["crc", number] = bNot(CRC)
+    return bNot(CRC)
 }
 
 function table:pngWriteRaw(Pixels:table) {
     local Count = Pixels:count()
+
+    local PositionX = This["positionX", number]
+    local PositionY = This["positionY", number]
+    local UncompRemain = This["uncompRemain", number]
+    local Height = This["height", number]
+    local LineSize = This["lineSize", number]
+    local DeflateFilled = This["deflateFilled", number]
+    local CRC = This["crc", number]
+    local Adler = This["adler", number]
+    local Buffer = This["output", table]
+    #local BufferLen = Buffer:count()
+
     local PixelPointer = 1
     while( Count > 0 ) {
-        assert(This["positionY", number] < This["height", number], "All image pixels already written")
-        if(This["deflateFilled", number] == 0){
+        assert(PositionY < Height, "All image pixels already written")
+        if(DeflateFilled == 0) {
             local Size = DEFLATE_MAX_BLOCK_SIZE
-            Size = min(Size, This["uncompRemain", number])
+            Size = min(Size, UncompRemain)
 
             local Header = table(
-                bAnd( (This["uncompRemain", number] <= DEFLATE_MAX_BLOCK_SIZE), 255 ),
-                bAnd( bShr( Size,0), 255 ),
-                bAnd( bShr( Size,8), 255 ),
-                bAnd( bXor( bShr(Size,0), 255 ), 255),
-                bAnd( bXor( bShr(Size,8), 255 ), 255)
+                bAnd( (UncompRemain <= DEFLATE_MAX_BLOCK_SIZE), 255 ),
+                bAnd( bShr( Size, 0), 255 ),
+                bAnd( bShr( Size, 8), 255 ),
+                bAnd( bXor( bShr(Size, 0), 255 ), 255),
+                bAnd( bXor( bShr(Size, 8), 255 ), 255)
             )
-            This:pngWriteBytes(Header)
-            This:pngCRC32(Header, 1, Header:count())
+            #BufferLen += 5 # Header length is 5
+
+            Buffer:pushString(toChar( Header[1, number] ))
+            Buffer:pushString(toChar( Header[2, number] ))
+            Buffer:pushString(toChar( Header[3, number] ))
+            Buffer:pushString(toChar( Header[4, number] ))
+            Buffer:pushString(toChar( Header[5, number] ))
+
+            pngCRC32(Header, 1, 5, CRC)
         }
 
-        assert(This["positionX", number] < This["lineSize", number] & This["deflateFilled", number] < DEFLATE_MAX_BLOCK_SIZE)
+        assert(PositionX < LineSize & DeflateFilled < DEFLATE_MAX_BLOCK_SIZE)
 
-        if (This["positionX", number] == 0){
-            This["output",table]:pushString( toChar(0) )
+        if (PositionX == 0) {
+            Buffer:pushString( NULL_CHAR )
 
-            local CRC = This["crc", number]
             # Unfolded for loop between 0,7
             CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( CRC, 1 ), 0xEDB88320 ) )
             CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( CRC, 1 ), 0xEDB88320 ) )
@@ -81,70 +100,97 @@ function table:pngWriteRaw(Pixels:table) {
             CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( CRC, 1 ), 0xEDB88320 ) )
             CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( CRC, 1 ), 0xEDB88320 ) )
             CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( CRC, 1 ), 0xEDB88320 ) )
-            This["crc", number] = bNot(CRC)
+            CRC = bNot(CRC)
 
             # Inline pngAdler32 with table(0) as the input
-            local S1 = bAnd(This["adler", number], 0xFFFF) % 65521
-            local S2 = (bShr(This["adler", number], 16) + S1) % 65521
-            This["adler", number] = bOr( bShl(S2, 16), S1 )
+            local S1 = bAnd(Adler, 0xFFFF) % 65521
+            local S2 = (bShr(Adler, 16) + S1) % 65521
+            Adler = bOr( bShl(S2, 16), S1 )
 
-            This["positionX", number] = This["positionX", number] + 1
-            This["uncompRemain", number] = This["uncompRemain", number] - 1
-            This["deflateFilled", number] = This["deflateFilled", number] + 1
+            PositionX++
+            UncompRemain--
+            DeflateFilled++
         } else {
-            local N = DEFLATE_MAX_BLOCK_SIZE - This["deflateFilled", number]
-            if (This["lineSize", number] - This["positionX", number] < N){
-                N = This["lineSize", number] - This["positionX", number]
+            local N = DEFLATE_MAX_BLOCK_SIZE - DeflateFilled
+            if (LineSize - PositionX < N){
+                N = LineSize - PositionX
             }
 
             N = min(N, Count)
             assert(N > 0)
-            This:pngWriteBytes(Pixels, PixelPointer, N)
-            This:pngCRC32(Pixels, PixelPointer, N)
 
-            local Adler = This["adler", number]
+            # Inlined pngWriteBytes(ttnn)
+            for (I = PixelPointer, PixelPointer + N - 1) {
+                Buffer:pushString( toChar( Pixels[I, number] ) )
+            }
+
+            # Hello
+            CRC = bNot(CRC)
+            for(I = PixelPointer, PixelPointer + N - 1) {
+                local Byte = Pixels[I, number]
+                # Unfolded for loop between 0,7
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 0) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 1) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 2) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 3) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 4) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 5) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 6) ), 1 ), 0xEDB88320 ) )
+                CRC = bXor( bShr(CRC, 1), bAnd( -bAnd( bXor( CRC, bShr(Byte, 7) ), 1 ), 0xEDB88320 ) )
+            }
+            CRC = bNot(CRC)
+
             local S1 = bAnd(Adler, 0xFFFF)
             local S2 = bShr(Adler, 16)
             for(I = PixelPointer, PixelPointer + N - 1) {
                 S1 = (S1 + Pixels[I, number]) % 65521
                 S2 = (S2 + S1) % 65521
             }
-            This["adler", number] = bOr( bShl(S2, 16), S1 )
-
+            Adler = bOr( bShl(S2, 16), S1 )
 
             Count -= N
             PixelPointer += N
-            This["positionX", number] = This["positionX", number] + N
-            This["uncompRemain", number] = This["uncompRemain", number] - N
-            This["deflateFilled", number] = This["deflateFilled", number] + N
+            PositionX += N
+            UncompRemain -= N
+            DeflateFilled += N
         }
 
-        if (This["deflateFilled", number] >= DEFLATE_MAX_BLOCK_SIZE){
-            This["deflateFilled", number] = 0
+        if (DeflateFilled >= DEFLATE_MAX_BLOCK_SIZE){
+            DeflateFilled = 0
         }
 
-        if (This["positionX", number] == This["lineSize", number]){
-            This["positionX", number] = 0
-            This["positionY", number] = This["positionY", number] + 1
-            if (This["positionY", number] == This["height", number]){
+        if (PositionX == LineSize){
+            PositionX = 0
+            PositionY++
+            if (PositionY == Height){
                 local Footer = table(
                     0, 0, 0, 0,
                     0, 0, 0, 0,
-                    0x00, 0x00, 0x00, 0x00,
+                    0, 0, 0, 0,
                     0x49, 0x45, 0x4E, 0x44,
                     0xAE, 0x42, 0x60, 0x82
                 )
-                putBigUint32(This["adler", number], Footer, 1)
-                This:pngCRC32(Footer, 1, 4)
-                putBigUint32(This["crc", number], Footer, 5)
-                This:pngWriteBytes(Footer)
+                putBigUint32(Adler, Footer, 1)
+                pngCRC32(Footer, 1, 4, CRC)
+                putBigUint32(CRC, Footer, 5)
+
+                pngWriteBytes(Buffer, Footer)
                 This["done", number] = 1
             }
         }
     }
+
+    This["positionX", number] = PositionX
+    This["positionY", number] = PositionY
+    This["uncompRemain", number] = UncompRemain
+    This["height", number] = Height
+    This["lineSize", number] = LineSize
+    This["deflateFilled", number] = DeflateFilled
+    This["crc", number] = CRC
+    This["adler", number] = Adler
 }
 
-function table createPNG(Width, Height, ColorMode:string){
+function table createPNG( [Width Height]:number, ColorMode:string){
     # colormode "rgb" = 1
     # colormode "rgba" = 2
     local CM = ColorMode:lower()
@@ -156,6 +202,7 @@ function table createPNG(Width, Height, ColorMode:string){
         BytesPerPixel = 4 # rgba
         ColorType = 6 # rgba
     }
+
     local State = table(
         "width" = Width,
         "height" = Height,
@@ -191,14 +238,15 @@ function table createPNG(Width, Height, ColorMode:string){
         0x49, 0x44, 0x41, 0x54,
         0x08, 0x1D
     )
+    local CRC = State["crc", number]
     putBigUint32(Width, Header, 17)
     putBigUint32(Height, Header, 21)
     putBigUint32(IdatSize, Header, 34)
-    State:pngCRC32(Header, 13, 17)
-    putBigUint32(State["crc", number], Header, 30)
-    State:pngWriteBytes(Header)
-    State["crc", number] = 0
-    State:pngCRC32(Header, 38, 6)
+
+    putBigUint32(pngCRC32(Header, 13, 17, CRC), Header, 30)
+    pngWriteBytes(State["output", table], Header)
+
+    State["crc", number] = pngCRC32(Header, 38, 6, 0)
     return State
 }
 

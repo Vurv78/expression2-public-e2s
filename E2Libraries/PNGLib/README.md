@@ -3,7 +3,12 @@ Originally transpiled from https://github.com/wyozi/lua-pngencoder
 However it has been **heavily** modified to be efficient and work for E2.
 
 ## What's new
-Version 1.3 overhauls the code a lot.
+### 1.4 --
+Inlined even more stuff.  
+``15897 OPS -> ~14900 OPS``  
+Sadly there's really not much else to improve.
+
+### 1.3 --
 A lot of boilerplate code was removed in an attempt to lower ops, and I am proud to say it worked.
 
 Went from ``25351 OPS -> 15897 OPS`` with this piece of code, pretty good:

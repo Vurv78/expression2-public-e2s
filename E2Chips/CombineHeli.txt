@@ -788,6 +788,7 @@ if(dmgClk()) {
         }
         
         if(Dam>100 && randint(-1,1)){
+            #ifdef effect()
             local Efx = effect()
             Efx:setOrigin(dmgPos())
             Efx:setRadius(Dam/2000)
@@ -810,6 +811,8 @@ if(dmgClk()) {
     
     }
 }
+#endif
+
 ####
 ####DMGCLK DEBUG
 ####
